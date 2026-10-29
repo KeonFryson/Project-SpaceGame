@@ -1,0 +1,520 @@
+fileFormatVersion: 2
+guid: 22bf69ddb8501154c8e5411e79aa3ceb
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 277385070867472838
+    second: Pickup Icon - Engines - Supercharged Engine_0
+  - first:
+      213: 8470154580162009436
+    second: Pickup Icon - Engines - Supercharged Engine_1
+  - first:
+      213: -8639517986409307814
+    second: Pickup Icon - Engines - Supercharged Engine_2
+  - first:
+      213: -8031795032278330139
+    second: Pickup Icon - Engines - Supercharged Engine_3
+  - first:
+      213: -2701576985592281476
+    second: Pickup Icon - Engines - Supercharged Engine_4
+  - first:
+      213: 6116018790055485681
+    second: Pickup Icon - Engines - Supercharged Engine_5
+  - first:
+      213: 6541939201755182814
+    second: Pickup Icon - Engines - Supercharged Engine_6
+  - first:
+      213: -6781484743799022984
+    second: Pickup Icon - Engines - Supercharged Engine_7
+  - first:
+      213: 8007756068135131915
+    second: Pickup Icon - Engines - Supercharged Engine_8
+  - first:
+      213: -895076286720894142
+    second: Pickup Icon - Engines - Supercharged Engine_9
+  - first:
+      213: -3696105435300058517
+    second: Pickup Icon - Engines - Supercharged Engine_10
+  - first:
+      213: 2375506513351168623
+    second: Pickup Icon - Engines - Supercharged Engine_11
+  - first:
+      213: -6379920497058562366
+    second: Pickup Icon - Engines - Supercharged Engine_12
+  - first:
+      213: 3616924444251166756
+    second: Pickup Icon - Engines - Supercharged Engine_13
+  - first:
+      213: -6839530154453184489
+    second: Pickup Icon - Engines - Supercharged Engine_14
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Supercharged Engine_0
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 7
+        width: 26
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6c16d07904879d300800000000000000
+      internalID: 277385070867472838
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Supercharged Engine_1
+      rect:
+        serializedVersion: 2
+        x: 35
+        y: 7
+        width: 26
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c59543fb6b80c8570800000000000000
+      internalID: 8470154580162009436
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Supercharged Engine_2
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 7
+        width: 26
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a51a97d5a244a1880800000000000000
+      internalID: -8639517986409307814
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Supercharged Engine_3
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 7
+        width: 26
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5e49d40f8f4598090800000000000000
+      internalID: -8031795032278330139
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Supercharged Engine_4
+      rect:
+        serializedVersion: 2
+        x: 131
+        y: 7
+        width: 26
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c76c6609b02128ad0800000000000000
+      internalID: -2701576985592281476
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Supercharged Engine_5
+      rect:
+        serializedVersion: 2
+        x: 163
+        y: 7
+        width: 26
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1f02fdc7fa670e450800000000000000
+      internalID: 6116018790055485681
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Supercharged Engine_6
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 7
+        width: 26
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed6f1d61b03a9ca50800000000000000
+      internalID: 6541939201755182814
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Supercharged Engine_7
+      rect:
+        serializedVersion: 2
+        x: 227
+        y: 7
+        width: 26
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 87ad02c2e8353e1a0800000000000000
+      internalID: -6781484743799022984
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Supercharged Engine_8
+      rect:
+        serializedVersion: 2
+        x: 259
+        y: 7
+        width: 26
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b0b5c2197b3412f60800000000000000
+      internalID: 8007756068135131915
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Supercharged Engine_9
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 7
+        width: 26
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 24b102b0cdc0493f0800000000000000
+      internalID: -895076286720894142
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Supercharged Engine_10
+      rect:
+        serializedVersion: 2
+        x: 323
+        y: 7
+        width: 26
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b6aac8c70bbc4bcc0800000000000000
+      internalID: -3696105435300058517
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Supercharged Engine_11
+      rect:
+        serializedVersion: 2
+        x: 355
+        y: 7
+        width: 26
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f625ce1869e77f020800000000000000
+      internalID: 2375506513351168623
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Supercharged Engine_12
+      rect:
+        serializedVersion: 2
+        x: 387
+        y: 7
+        width: 26
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ce37953c18f577a0800000000000000
+      internalID: -6379920497058562366
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Supercharged Engine_13
+      rect:
+        serializedVersion: 2
+        x: 419
+        y: 7
+        width: 26
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 42894076e95e13230800000000000000
+      internalID: 3616924444251166756
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Supercharged Engine_14
+      rect:
+        serializedVersion: 2
+        x: 451
+        y: 7
+        width: 26
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 710de39df8b1511a0800000000000000
+      internalID: -6839530154453184489
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Pickup Icon - Engines - Supercharged Engine_0: 277385070867472838
+      Pickup Icon - Engines - Supercharged Engine_1: 8470154580162009436
+      Pickup Icon - Engines - Supercharged Engine_10: -3696105435300058517
+      Pickup Icon - Engines - Supercharged Engine_11: 2375506513351168623
+      Pickup Icon - Engines - Supercharged Engine_12: -6379920497058562366
+      Pickup Icon - Engines - Supercharged Engine_13: 3616924444251166756
+      Pickup Icon - Engines - Supercharged Engine_14: -6839530154453184489
+      Pickup Icon - Engines - Supercharged Engine_2: -8639517986409307814
+      Pickup Icon - Engines - Supercharged Engine_3: -8031795032278330139
+      Pickup Icon - Engines - Supercharged Engine_4: -2701576985592281476
+      Pickup Icon - Engines - Supercharged Engine_5: 6116018790055485681
+      Pickup Icon - Engines - Supercharged Engine_6: 6541939201755182814
+      Pickup Icon - Engines - Supercharged Engine_7: -6781484743799022984
+      Pickup Icon - Engines - Supercharged Engine_8: 8007756068135131915
+      Pickup Icon - Engines - Supercharged Engine_9: -895076286720894142
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

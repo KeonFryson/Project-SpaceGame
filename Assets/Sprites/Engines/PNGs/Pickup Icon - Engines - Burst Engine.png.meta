@@ -1,0 +1,520 @@
+fileFormatVersion: 2
+guid: d9a97a503a588f148abde7da42a7bfd0
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -1891451263786832654
+    second: Pickup Icon - Engines - Burst Engine_0
+  - first:
+      213: 3014066417521220751
+    second: Pickup Icon - Engines - Burst Engine_1
+  - first:
+      213: 6982647155081373936
+    second: Pickup Icon - Engines - Burst Engine_2
+  - first:
+      213: 4625857861205748440
+    second: Pickup Icon - Engines - Burst Engine_3
+  - first:
+      213: -5742535681518560230
+    second: Pickup Icon - Engines - Burst Engine_4
+  - first:
+      213: -2503214314475633771
+    second: Pickup Icon - Engines - Burst Engine_5
+  - first:
+      213: 1254991922293447527
+    second: Pickup Icon - Engines - Burst Engine_6
+  - first:
+      213: -297458211246034369
+    second: Pickup Icon - Engines - Burst Engine_7
+  - first:
+      213: 6655232545607336347
+    second: Pickup Icon - Engines - Burst Engine_8
+  - first:
+      213: 5662594613124939203
+    second: Pickup Icon - Engines - Burst Engine_9
+  - first:
+      213: -6947200145320715111
+    second: Pickup Icon - Engines - Burst Engine_10
+  - first:
+      213: -8689852754771794031
+    second: Pickup Icon - Engines - Burst Engine_11
+  - first:
+      213: -2489892070731209877
+    second: Pickup Icon - Engines - Burst Engine_12
+  - first:
+      213: -6522837427842373877
+    second: Pickup Icon - Engines - Burst Engine_13
+  - first:
+      213: -7635450440024676312
+    second: Pickup Icon - Engines - Burst Engine_14
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Burst Engine_0
+      rect:
+        serializedVersion: 2
+        x: 3
+        y: 5
+        width: 26
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fca500d81730c5e0800000000000000
+      internalID: -1891451263786832654
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Burst Engine_1
+      rect:
+        serializedVersion: 2
+        x: 35
+        y: 5
+        width: 26
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f8c59c1007d14d920800000000000000
+      internalID: 3014066417521220751
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Burst Engine_2
+      rect:
+        serializedVersion: 2
+        x: 67
+        y: 5
+        width: 26
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0f86486879857e060800000000000000
+      internalID: 6982647155081373936
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Burst Engine_3
+      rect:
+        serializedVersion: 2
+        x: 99
+        y: 5
+        width: 26
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8daed964739523040800000000000000
+      internalID: 4625857861205748440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Burst Engine_4
+      rect:
+        serializedVersion: 2
+        x: 131
+        y: 5
+        width: 26
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a1c9411193a6e40b0800000000000000
+      internalID: -5742535681518560230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Burst Engine_5
+      rect:
+        serializedVersion: 2
+        x: 163
+        y: 5
+        width: 26
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 593c105f7dbc24dd0800000000000000
+      internalID: -2503214314475633771
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Burst Engine_6
+      rect:
+        serializedVersion: 2
+        x: 195
+        y: 5
+        width: 26
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 76b194c0180aa6110800000000000000
+      internalID: 1254991922293447527
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Burst Engine_7
+      rect:
+        serializedVersion: 2
+        x: 227
+        y: 5
+        width: 26
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f32382735573fdbf0800000000000000
+      internalID: -297458211246034369
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Burst Engine_8
+      rect:
+        serializedVersion: 2
+        x: 259
+        y: 5
+        width: 26
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b914b824db22c5c50800000000000000
+      internalID: 6655232545607336347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Burst Engine_9
+      rect:
+        serializedVersion: 2
+        x: 291
+        y: 5
+        width: 26
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3cd3a568cc3959e40800000000000000
+      internalID: 5662594613124939203
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Burst Engine_10
+      rect:
+        serializedVersion: 2
+        x: 323
+        y: 5
+        width: 26
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 99cdd929646969f90800000000000000
+      internalID: -6947200145320715111
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Burst Engine_11
+      rect:
+        serializedVersion: 2
+        x: 355
+        y: 5
+        width: 26
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 197a069d5f0776780800000000000000
+      internalID: -8689852754771794031
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Burst Engine_12
+      rect:
+        serializedVersion: 2
+        x: 387
+        y: 5
+        width: 26
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b63210b8a50227dd0800000000000000
+      internalID: -2489892070731209877
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Burst Engine_13
+      rect:
+        serializedVersion: 2
+        x: 419
+        y: 5
+        width: 26
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b0725d93be93a75a0800000000000000
+      internalID: -6522837427842373877
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Pickup Icon - Engines - Burst Engine_14
+      rect:
+        serializedVersion: 2
+        x: 451
+        y: 5
+        width: 26
+        height: 19
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 828aa36774e690690800000000000000
+      internalID: -7635450440024676312
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      Pickup Icon - Engines - Burst Engine_0: -1891451263786832654
+      Pickup Icon - Engines - Burst Engine_1: 3014066417521220751
+      Pickup Icon - Engines - Burst Engine_10: -6947200145320715111
+      Pickup Icon - Engines - Burst Engine_11: -8689852754771794031
+      Pickup Icon - Engines - Burst Engine_12: -2489892070731209877
+      Pickup Icon - Engines - Burst Engine_13: -6522837427842373877
+      Pickup Icon - Engines - Burst Engine_14: -7635450440024676312
+      Pickup Icon - Engines - Burst Engine_2: 6982647155081373936
+      Pickup Icon - Engines - Burst Engine_3: 4625857861205748440
+      Pickup Icon - Engines - Burst Engine_4: -5742535681518560230
+      Pickup Icon - Engines - Burst Engine_5: -2503214314475633771
+      Pickup Icon - Engines - Burst Engine_6: 1254991922293447527
+      Pickup Icon - Engines - Burst Engine_7: -297458211246034369
+      Pickup Icon - Engines - Burst Engine_8: 6655232545607336347
+      Pickup Icon - Engines - Burst Engine_9: 5662594613124939203
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

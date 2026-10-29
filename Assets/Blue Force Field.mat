@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Blue Force Field
+  m_Shader: {fileID: 4800000, guid: 367d57a11b50dc64bb651b607061ab01, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _AlphaTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PatternTex:
+        m_Texture: {fileID: 2800000, guid: 264e70193d0f64e4c96069736a410659, type: 3}
+        m_Scale: {x: 3, y: 3}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _BaseAlpha: 0.118
+    - _Break: 0
+    - _EnableExternalAlpha: 0
+    - _OutlineIntensity: 0.199
+    - _OutlineWidth: 0.58
+    - _PatternStrength: 2
+    - _PatternTiling: 1
+    - _RippleDistort: 0.15
+    - _RippleDuration: 1
+    - _RippleSpeed: 0.5
+    - _RippleWidth: 0.02
+    - _ZWrite: 0
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _OutlineColor: {r: 0.12500001, g: 0.25000003, b: 0.7500001, a: 1}
+    - _PatternScroll: {r: 0, g: 0.1, b: 0, a: 0}
+    - _RendererColor: {r: 1, g: 1, b: 1, a: 1}
+    - _RippleColor: {r: 0.9339284, g: 1.6032789, b: 1.6096977, a: 1}
+    - _Tint: {r: 0, g: 0.1337966, b: 0.40138966, a: 0.21960784}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

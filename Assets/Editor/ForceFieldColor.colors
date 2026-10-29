@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &1
+MonoBehaviour:
+  m_ObjectHideFlags: 52
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 12323, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: ForceFieldColor
+  m_EditorClassIdentifier: UnityEditor.dll::UnityEditor.ColorPresetLibrary
+  m_Presets:
+  - m_Name: 
+    m_Color: {r: 0.2, g: 0.8, b: 2, a: 1}
+  - m_Name: 
+    m_Color: {r: 0.5, g: 1, b: 3, a: 1}
+  - m_Name: 
+    m_Color: {r: 0.9339284, g: 1.6032789, b: 1.6096977, a: 1}
+  - m_Name: 
+    m_Color: {r: 1.7435875, g: 0.90467715, b: 0.89646715, a: 1}
