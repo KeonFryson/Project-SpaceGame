@@ -252,6 +252,14 @@ public class TopDownCameraController : MonoBehaviour
         }
     }
 
+    public void SetmaxOrthoSize(float maxSize)
+    {
+        Debug.Log($"TopDownCameraController: setting maxOrthoSize to {maxSize}");
+        maxOrthoSize = maxSize;
+        targetOrthoSize = Mathf.Clamp(targetOrthoSize, minOrthoSize, maxOrthoSize);
+        Debug.Log($"TopDownCameraController: targetOrthoSize now {targetOrthoSize}");
+    }
+
     /// <summary>
     /// Sets the pan bounds from a world-space min/max rect and enables clamping. Handy to call
     /// from ExcavationManager once the starter layout is seeded, e.g.
