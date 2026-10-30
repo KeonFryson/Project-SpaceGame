@@ -33,6 +33,8 @@ public class GalaxyManager : MonoBehaviour
 
     void Start()
     {
+        CelestialBody.OrbitTimeScale = 0;
+
         if (mapView != null) mapView.SystemClicked += LoadSystem;
 
         GenerateGalaxy(randomizeSeedOnStart ? Random.Range(1, int.MaxValue) : galaxySeed);

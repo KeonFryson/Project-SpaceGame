@@ -85,105 +85,107 @@ public class PlanetRenderer : MonoBehaviour
         rotation = F(0f, 6.28f);
         timeOffset = F(0f, 60f);
         spinSpeed = F(-0.5f, 0.5f);
-        float seedValue = Mathf.Abs(seed % 1000) / 100f;   // same 0..10 conversion the original IPlanet scripts used
+        // The shaders' _Seed property is range(1,10) and is read as an int. A value below 1 truncates to 0,
+        // which makes every noise function return 0 -> a flat, single-colour planet. Keep it in 1..10.
+        float seedValue = 1f + Mathf.Abs(seed % 1000) / 1000f * 9f;
 
         switch (type)
         {
             case PlanetType.Terran:
-            {
-                float h = Alien(0.4f);
-                Add(lib.planetUnder, C3, new[] { "#92E8C0", "#4FA4B8", "#2C354D" }, h);
-                Add(lib.planetLandMass, C4, new[] { "#C8D45D", "#63AB3F", "#2F5753", "#283540" }, h);
-                var c = Add(lib.clouds, Cloud, new[] { "#DFE0E8", "#A3A7C2", "#686F99", "#404973" }, 0f, 0.5f);
-                SetF(c, "_Cloud_cover", F(0.35f, 0.6f));
-                break;
-            }
-            case PlanetType.RiverWorld:
-            {
-                float h = Alien(0.4f);
-                Add(lib.landRivers, River6, new[] { "#63AB3F", "#3B7D4F", "#2F5753", "#283540", "#4FA4B8", "#404973" }, h, 0.5f);
-                var c = Add(lib.cloudsRiver, Cloud, new[] { "#FFFFFF", "#DFE0E8", "#686F99", "#404973" }, 0f, 0.25f);
-                SetF(c, "_Cloud_cover", F(0.35f, 0.6f));
-                break;
-            }
-            case PlanetType.Desert:
-            {
-                float h = Alien(0.5f);
-                var l = Add(lib.dryTerran, null, null, 0f);
-                if (l != null)
-                    l.mat.SetTexture(GradId, MakeGradient(
-                        new[] { "#ff8933", "#e64539", "#ad2f45", "#52333f", "#3d2936" },
-                        new[] { 0f, 0.2f, 0.4f, 0.6f, 0.8f }, h));
-                break;
-            }
-            case PlanetType.Ice:
-            {
-                float h = Alien(0.25f);
-                Add(lib.icePlanetUnder, C3, new[] { "#faffff", "#c7d4e1", "#928fb8" }, h);
-                Add(lib.lakes, C3, new[] { "#4fa4b8", "#4c6885", "#3a3f5e" }, h);
-                Add(lib.iceClouds, Cloud, new[] { "#e1f2ff", "#c0e3ff", "#5e70a5", "#404973" }, 0f, 0.5f);
-                break;
-            }
-            case PlanetType.Lava:
-            {
-                float h = F(-0.06f, 0.06f);
-                Add(lib.lavaPlanetUnder, C3, new[] { "#8f4d57", "#52333f", "#3d2936" }, h, 0.5f);
-                Add(lib.lavaCraters, C2, new[] { "#52333f", "#3d2936" }, h, 0.5f);
-                Add(lib.lavaRivers, C3, new[] { "#ff8933", "#e64539", "#ad2f45" }, h, 0.5f);
-                break;
-            }
-            case PlanetType.GasGiant:
-            {
-                float h = F(-0.5f, 0.5f);
-                Add(lib.gasPlanet, GasCloud, new[] { "#3b2027", "#3b2027", "#21181b", "#21181b" }, h, 0.5f);
-                var c = Add(lib.gasPlanet2, GasCloud, new[] { "#f0b541", "#cf752b", "#ab5130", "#7d3833" }, h, 0.5f);
-                SetF(c, "_Cloud_cover", F(0.28f, 0.5f));
-                break;
-            }
-            case PlanetType.RingedGiant:
-            {
-                float h = F(-0.5f, 0.5f);
-                var times = new[] { 0f, 0.5f, 1f };
-                var lightTex = MakeGradient(new[] { "#eec39a", "#d9a066", "#8f563b" }, times, h);
-                var darkTex = MakeGradient(new[] { "#663931", "#45283c", "#222034" }, times, h);
-                var gas = Add(lib.gasLayers, null, null, 0f, 0.5f, 1f, 1.3f);
-                var ring = Add(lib.ring, null, null, 0f, -1.5f, 3f, 1.3f);   // ring quad is 3x the planet quad
-                if (ring != null) ring.rotAdd = 0.7f;
-                foreach (var l in new[] { gas, ring })
                 {
-                    if (l == null) continue;
-                    l.mat.SetTexture(ColorSchemeId, lightTex);
-                    l.mat.SetTexture(DarkSchemeId, darkTex);
+                    float h = Alien(0.4f);
+                    Add(lib.planetUnder, C3, new[] { "#92E8C0", "#4FA4B8", "#2C354D" }, h);
+                    Add(lib.planetLandMass, C4, new[] { "#C8D45D", "#63AB3F", "#2F5753", "#283540" }, h);
+                    var c = Add(lib.clouds, Cloud, new[] { "#DFE0E8", "#A3A7C2", "#686F99", "#404973" }, 0f, 0.5f);
+                    SetF(c, "_Cloud_cover", F(0.35f, 0.6f));
+                    break;
                 }
-                break;
-            }
+            case PlanetType.RiverWorld:
+                {
+                    float h = Alien(0.4f);
+                    Add(lib.landRivers, River6, new[] { "#63AB3F", "#3B7D4F", "#2F5753", "#283540", "#4FA4B8", "#404973" }, h, 0.5f);
+                    var c = Add(lib.cloudsRiver, Cloud, new[] { "#FFFFFF", "#DFE0E8", "#686F99", "#404973" }, 0f, 0.25f);
+                    SetF(c, "_Cloud_cover", F(0.35f, 0.6f));
+                    break;
+                }
+            case PlanetType.Desert:
+                {
+                    float h = Alien(0.5f);
+                    var l = Add(lib.dryTerran, null, null, 0f);
+                    if (l != null)
+                        l.mat.SetTexture(GradId, MakeGradient(
+                            new[] { "#ff8933", "#e64539", "#ad2f45", "#52333f", "#3d2936" },
+                            new[] { 0f, 0.2f, 0.4f, 0.6f, 0.8f }, h));
+                    break;
+                }
+            case PlanetType.Ice:
+                {
+                    float h = Alien(0.25f);
+                    Add(lib.icePlanetUnder, C3, new[] { "#faffff", "#c7d4e1", "#928fb8" }, h);
+                    Add(lib.lakes, C3, new[] { "#4fa4b8", "#4c6885", "#3a3f5e" }, h);
+                    Add(lib.iceClouds, Cloud, new[] { "#e1f2ff", "#c0e3ff", "#5e70a5", "#404973" }, 0f, 0.5f);
+                    break;
+                }
+            case PlanetType.Lava:
+                {
+                    float h = F(-0.06f, 0.06f);
+                    Add(lib.lavaPlanetUnder, C3, new[] { "#8f4d57", "#52333f", "#3d2936" }, h, 0.5f);
+                    Add(lib.lavaCraters, C2, new[] { "#52333f", "#3d2936" }, h, 0.5f);
+                    Add(lib.lavaRivers, C3, new[] { "#ff8933", "#e64539", "#ad2f45" }, h, 0.5f);
+                    break;
+                }
+            case PlanetType.GasGiant:
+                {
+                    float h = F(-0.5f, 0.5f);
+                    Add(lib.gasPlanet, GasCloud, new[] { "#3b2027", "#3b2027", "#21181b", "#21181b" }, h, 0.5f);
+                    var c = Add(lib.gasPlanet2, GasCloud, new[] { "#f0b541", "#cf752b", "#ab5130", "#7d3833" }, h, 0.5f);
+                    SetF(c, "_Cloud_cover", F(0.28f, 0.5f));
+                    break;
+                }
+            case PlanetType.RingedGiant:
+                {
+                    float h = F(-0.5f, 0.5f);
+                    var times = new[] { 0f, 0.5f, 1f };
+                    var lightTex = MakeGradient(new[] { "#eec39a", "#d9a066", "#8f563b" }, times, h);
+                    var darkTex = MakeGradient(new[] { "#663931", "#45283c", "#222034" }, times, h);
+                    var gas = Add(lib.gasLayers, null, null, 0f, 0.5f, 1f, 1.3f);
+                    var ring = Add(lib.ring, null, null, 0f, -1.5f, 3f, 1.3f);   // ring quad is 3x the planet quad
+                    if (ring != null) ring.rotAdd = 0.7f;
+                    foreach (var l in new[] { gas, ring })
+                    {
+                        if (l == null) continue;
+                        l.mat.SetTexture(ColorSchemeId, lightTex);
+                        l.mat.SetTexture(DarkSchemeId, darkTex);
+                    }
+                    break;
+                }
             case PlanetType.Barren:
-            {
-                float h = Alien(0.5f);
-                Add(lib.noAtmosphere, C3, new[] { "#A3A7C2", "#4C6885", "#3A3F5E" }, h, 0.5f);
-                Add(lib.craters, C2, new[] { "#4C6885", "#3A3F5E" }, h, 0.5f);
-                break;
-            }
+                {
+                    float h = Alien(0.5f);
+                    Add(lib.noAtmosphere, C3, new[] { "#A3A7C2", "#4C6885", "#3A3F5E" }, h, 0.5f);
+                    Add(lib.craters, C2, new[] { "#4C6885", "#3A3F5E" }, h, 0.5f);
+                    break;
+                }
             case PlanetType.Asteroid:
-            {
-                var l = Add(lib.asteroid, C3, new[] { "#a3a7c2", "#4c6885", "#3a3f5e" }, Alien(0.3f), 0f);
-                if (l != null) l.spin = true;
-                break;
-            }
+                {
+                    var l = Add(lib.asteroid, C3, new[] { "#a3a7c2", "#4c6885", "#3a3f5e" }, Alien(0.3f), 0f);
+                    if (l != null) l.spin = true;
+                    break;
+                }
             case PlanetType.Star:
-            {
-                float h = starHueShift;
-                Add(lib.starBlobs, new[] { "_Color1" }, new[] { "#ffffe4" }, h, 1f, 2f);
-                var body = Add(lib.star, null, null, 0f, 0.1f);
-                var flares = Add(lib.starFlares, null, null, 0f, 1f, 2f);
-                if (body != null)
-                    body.mat.SetTexture(GradId, MakeGradient(
-                        new[] { "#f5ffe8", "#77d6c1", "#1c92a7", "#033e5e" }, new[] { 0f, 0.33f, 0.66f, 1f }, h));
-                if (flares != null)
-                    flares.mat.SetTexture(GradId, MakeGradient(
-                        new[] { "#77d6c1", "#ffffe4" }, new[] { 0f, 1f }, h));
-                break;
-            }
+                {
+                    float h = starHueShift;
+                    Add(lib.starBlobs, new[] { "_Color1" }, new[] { "#ffffe4" }, h, 1f, 2f);
+                    var body = Add(lib.star, null, null, 0f, 0.1f);
+                    var flares = Add(lib.starFlares, null, null, 0f, 1f, 2f);
+                    if (body != null)
+                        body.mat.SetTexture(GradId, MakeGradient(
+                            new[] { "#f5ffe8", "#77d6c1", "#1c92a7", "#033e5e" }, new[] { 0f, 0.33f, 0.66f, 1f }, h));
+                    if (flares != null)
+                        flares.mat.SetTexture(GradId, MakeGradient(
+                            new[] { "#77d6c1", "#ffffe4" }, new[] { 0f, 1f }, h));
+                    break;
+                }
         }
 
         foreach (var l in layers)
