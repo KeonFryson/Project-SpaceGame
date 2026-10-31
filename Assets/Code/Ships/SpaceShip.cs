@@ -39,6 +39,8 @@ public class SpaceShip : MonoBehaviour, IDamageable
     void Start()
     {
         isAlive = true;
+        // start in a state consistent with the flag
+        if (shieldObject != null) shieldObject.SetActive(isShieldActive);
     }
 
     void Update()
@@ -75,58 +77,57 @@ public class SpaceShip : MonoBehaviour, IDamageable
         if (health <= 0)
         {
             isAlive = false;
-            // Handle spaceship destruction logic here
             Destroy(gameObject);
         }
     }
 
     private void BreakShield()
     {
-        Debug.Log("Breaking shield. Current shield: " + shield);
+        isShieldActive = false;       // damage goes to health from now on
         isAnimationPlaying = true;
         forceFieldController.PlayAnimation(() =>
         {
-            Debug.Log("Shield break animation completed.");
             isAnimationPlaying = false;
-            Debug.Log("isAnimationPlaying" + isAnimationPlaying);
             shieldObject.SetActive(false);
         });
     }
 
-    /// Bring the shield back (pickup, recharge, etc.)
-    public void RestoreShield()
+    /// Shows the shield object, then plays the "appear" animation in reverse.
+    private void ActivateShield()
     {
-        shield = maxShield;
+        isShieldActive = true;
         isAnimationPlaying = true;
+        shieldObject.SetActive(true);        // must be active before starting the coroutine
+        forceFieldController.Restore();      // clear stale ripples / progress
         forceFieldController.PlayAnimation(() =>
         {
             forceFieldController.Restore();
             isAnimationPlaying = false;
-            shieldObject.SetActive(true);
-        });
+        }, reverse: true);
+    }
+
+    public void RestoreShield()
+    {
+        shield = maxShield;
+        if (!isShieldActive && !isAnimationPlaying) ActivateShield();
     }
 
     [ContextMenu("Toggle Shield")]
     public void ToggleShield()
     {
-        Debug.Log("ToggleShield called. isShieldActive: " + isShieldActive + ", shield: " + shield + ", isAnimationPlaying: " + isAnimationPlaying);
-        if (isAnimationPlaying) { Debug.Log("Animation is playing, cannot toggle shield."); return; }   // let the break animation finish
+        if (isAnimationPlaying) return;   // let the current animation finish
 
-        isShieldActive = !isShieldActive;
-        Debug.Log("Shield toggled: " + isShieldActive);
-
-        if (isShieldActive && shield > 0)
+        if (isShieldActive)
         {
-            shieldObject.SetActive(isShieldActive);
-            RestoreShield();
-            Debug.Log("Shield restored and activated.");
+            BreakShield();
+        }
+        else if (shield > 0)
+        {
+            ActivateShield();
         }
         else
         {
-
-            BreakShield();
-            shieldObject.SetActive(isShieldActive);
-            Debug.Log("Shield deactivated.");
+            Debug.Log("Can't activate shield: it has no charge. Call RestoreShield() first.");
         }
     }
 }

@@ -75,14 +75,14 @@ public class ForceFieldController : MonoBehaviour
     }
 
     /// Plays the shield-destroyed animation, then calls onComplete.
-    public void PlayAnimation(Action onComplete = null)
+    public void PlayAnimation(Action onComplete = null, bool reverse = false)
     {
-        
-        animationProgress = 0f;
         if (animationRoutine != null) StopCoroutine(animationRoutine);
-        animationRoutine = StartCoroutine(AnimationRoutine(onComplete));
+        animationProgress = reverse ? 1f : 0f;
+        animationRoutine = StartCoroutine(AnimationRoutine(onComplete, reverse));
     }
- 
+
+
     /// Resets the shield to its normal look. Call when the shield comes back.
     public void Restore()
     {
@@ -93,9 +93,8 @@ public class ForceFieldController : MonoBehaviour
         for (int i = 0; i < MaxRipples; i++) ripples[i] = Vector4.zero;
     }
 
-    IEnumerator AnimationRoutine(Action onComplete)
+    IEnumerator AnimationRoutine(Action onComplete, bool reverse)
     {
-        Debug.Log("ForceFieldController: AnimationRoutine started");
         // Burst of ripples around the edge
         Vector3 ext = sr.sprite != null ? sr.sprite.bounds.extents : Vector3.one * 0.5f;
         float radius = Mathf.Max(ext.x, ext.y) * 0.8f;
@@ -109,22 +108,19 @@ public class ForceFieldController : MonoBehaviour
         float t = 0f;
         while (t < 1f)
         {
-          
             t += Time.deltaTime / Mathf.Max(animationDuration, 0.01f);
-            animationProgress = Mathf.Clamp01(t);
-            Debug.Log($"ForceFieldController: AnimationRoutine progress {animationProgress}");
-            transform.localScale = baseScale * (1f + animationScalePunch * Mathf.Sin(animationProgress * Mathf.PI));
+            float p = Mathf.Clamp01(t);
+            animationProgress = reverse ? 1f - p : p;
+            transform.localScale = baseScale * (1f + animationScalePunch * Mathf.Sin(p * Mathf.PI));
             yield return null;
-           
         }
-        Debug.Log("ForceFieldController: AnimationRoutine progress completed");
+
         transform.localScale = baseScale;
         animationRoutine = null;
-        Debug.Log("ForceFieldController: AnimationRoutine completed");
         onComplete?.Invoke();
     }
 
-    
+
 
     void OnCollisionEnter2D(Collision2D c)
     {
