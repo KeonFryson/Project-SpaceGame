@@ -3,11 +3,18 @@ using System.Collections;
 using UnityEngine;
 
 /// Put on any GameObject with a SpriteRenderer using the "Custom/Sprite ForceField" material.
-/// Call Hit(worldPoint) for ripples and Break() for the destroy animation.
+/// Call Hit(worldPoint) for ripples and PlayAnimation() for the appear/disappear animation.
 [RequireComponent(typeof(SpriteRenderer))]
 public class ForceFieldController : MonoBehaviour
 {
-    const int MaxRipples = 8;
+    // ---- fixed rules -------------------------------------------------------
+    const int MaxRipples = 8;                       // must match the array size in the shader
+    const float DefaultRippleStrength = 1f;
+    const float AnimationIntact = 0f;               // shader _Animation value: shield fully present
+    const float AnimationBroken = 1f;               // shader _Animation value: shield fully gone
+    const float MinAnimationDuration = 0.01f;       // guards against divide-by-zero
+    const float FullCircleRadians = Mathf.PI * 2f;
+    const float DefaultSpriteHalfExtent = 0.5f;     // used when there is no sprite assigned
 
     [Header("Look (overrides the material when assigned)")]
     [ColorUsage(true, true)] public Color fieldColor = new Color(0.2f, 0.8f, 2f, 1f);
@@ -20,13 +27,17 @@ public class ForceFieldController : MonoBehaviour
     public float minStrength = 0.4f;
     public float maxStrength = 1.5f;
     public float velocityForMaxStrength = 10f;
+    [Tooltip("Strength of the ripple when triggered by a trigger collider.")]
+    public float triggerRippleStrength = DefaultRippleStrength;
     [Tooltip("Also ripple from this object's own collision/trigger callbacks. " +
              "Leave off if projectiles already call Hit(), or you'll get double ripples.")]
     public bool autoRippleOnContact = false;
 
     [Header("Animation")]
     public float animationDuration = 0.6f;
-    public float animationScalePunch = 0;
+    public float animationScalePunch = 0f;
+    [Tooltip("Where the ripple burst sits, as a fraction of the sprite's half-size.")]
+    [Range(0f, 1f)] public float burstRadiusFraction = 0.8f;
 
     SpriteRenderer sr;
     MaterialPropertyBlock mpb;
@@ -49,6 +60,7 @@ public class ForceFieldController : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
         mpb = new MaterialPropertyBlock();
         baseScale = transform.localScale;
+        animationProgress = AnimationIntact;
     }
 
     void LateUpdate()
@@ -67,40 +79,43 @@ public class ForceFieldController : MonoBehaviour
     }
 
     /// Spawn a ripple at a world-space position.
-    public void Hit(Vector2 worldPoint, float strength = 1f)
+    public void Hit(Vector2 worldPoint, float strength = DefaultRippleStrength)
     {
         Vector3 local = transform.InverseTransformPoint(worldPoint);
         ripples[next] = new Vector4(local.x, local.y, Time.time, strength);
         next = (next + 1) % MaxRipples;
     }
 
-    /// Plays the shield-destroyed animation, then calls onComplete.
+    /// Plays the shield animation, then calls onComplete.
+    /// reverse = false: shield breaks / disappears
+    /// reverse = true:  shield materialises
     public void PlayAnimation(Action onComplete = null, bool reverse = false)
     {
         if (animationRoutine != null) StopCoroutine(animationRoutine);
-        animationProgress = reverse ? 1f : 0f;
+        animationProgress = reverse ? AnimationBroken : AnimationIntact;
         animationRoutine = StartCoroutine(AnimationRoutine(onComplete, reverse));
     }
 
-
-    /// Resets the shield to its normal look. Call when the shield comes back.
+    /// Resets the shield to its normal look.
     public void Restore()
     {
         if (animationRoutine != null) StopCoroutine(animationRoutine);
         animationRoutine = null;
-        animationProgress = 0f;
+        animationProgress = AnimationIntact;
         transform.localScale = baseScale;
-        for (int i = 0; i < MaxRipples; i++) ripples[i] = Vector4.zero;
+        Array.Clear(ripples, 0, MaxRipples);
     }
 
     IEnumerator AnimationRoutine(Action onComplete, bool reverse)
     {
         // Burst of ripples around the edge
-        Vector3 ext = sr.sprite != null ? sr.sprite.bounds.extents : Vector3.one * 0.5f;
-        float radius = Mathf.Max(ext.x, ext.y) * 0.8f;
+        Vector3 ext = sr.sprite != null
+            ? sr.sprite.bounds.extents
+            : Vector3.one * DefaultSpriteHalfExtent;
+        float radius = Mathf.Max(ext.x, ext.y) * burstRadiusFraction;
         for (int i = 0; i < MaxRipples; i++)
         {
-            float ang = i / (float)MaxRipples * Mathf.PI * 2f;
+            float ang = i / (float)MaxRipples * FullCircleRadians;
             Vector3 local = new Vector3(Mathf.Cos(ang), Mathf.Sin(ang), 0f) * radius;
             Hit(transform.TransformPoint(local), maxStrength);
         }
@@ -108,9 +123,11 @@ public class ForceFieldController : MonoBehaviour
         float t = 0f;
         while (t < 1f)
         {
-            t += Time.deltaTime / Mathf.Max(animationDuration, 0.01f);
+            t += Time.deltaTime / Mathf.Max(animationDuration, MinAnimationDuration);
             float p = Mathf.Clamp01(t);
-            animationProgress = reverse ? 1f - p : p;
+            animationProgress = reverse
+                ? Mathf.Lerp(AnimationBroken, AnimationIntact, p)
+                : Mathf.Lerp(AnimationIntact, AnimationBroken, p);
             transform.localScale = baseScale * (1f + animationScalePunch * Mathf.Sin(p * Mathf.PI));
             yield return null;
         }
@@ -119,8 +136,6 @@ public class ForceFieldController : MonoBehaviour
         animationRoutine = null;
         onComplete?.Invoke();
     }
-
-
 
     void OnCollisionEnter2D(Collision2D c)
     {
@@ -136,6 +151,6 @@ public class ForceFieldController : MonoBehaviour
         var col = GetComponent<Collider2D>();
         Vector2 p = col != null ? col.ClosestPoint(other.transform.position)
                                 : (Vector2)other.transform.position;
-        Hit(p, 1f);
+        Hit(p, triggerRippleStrength);
     }
 }

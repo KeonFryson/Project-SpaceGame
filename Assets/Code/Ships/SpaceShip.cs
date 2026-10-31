@@ -1,27 +1,37 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class SpaceShip : MonoBehaviour, IDamageable
 {
+    const float ProjectileRippleStrength = 1f;
+
     private Rigidbody2D rb;
 
+    [Header("Stats")]
+    [SerializeField] private int maxHealth = 100;
+    [SerializeField] private int maxShield = 100;
+    [SerializeField] private int maxFuel = 100;
+    [SerializeField] private int maxAmmo = 100;
+
+    [Header("Current (runtime)")]
     [SerializeField] private int health;
-    private int maxHealth = 100;
     [SerializeField] private int shield;
-    private int maxShield = 100;
     [SerializeField] private int fuel;
-    private int maxFuel = 100;
     [SerializeField] private int ammo;
-    private int maxAmmo = 100;
+
+    [Header("Shield")]
+    [SerializeField] private ForceFieldController forceFieldController;
+    [SerializeField] private GameObject shieldObject;
+    [Tooltip("How strongly projectile hits ripple the shield.")]
+    [SerializeField] private float projectileRippleStrength = ProjectileRippleStrength;
+
+    [Header("Movement")]
+    public float speed = 5f;
+    public float rotationSpeed = 200f;
 
     private bool isAlive = true;
     public bool isShieldActive = false;
     private bool isAnimationPlaying = false;
-
-    [SerializeField] private ForceFieldController forceFieldController; // drag the shield's controller here
-    [SerializeField] private GameObject shieldObject;
-
-    public float speed = 5f;
-    public float rotationSpeed = 200f;
 
     void Awake()
     {
@@ -30,6 +40,7 @@ public class SpaceShip : MonoBehaviour, IDamageable
             forceFieldController = GetComponentInChildren<ForceFieldController>(true);
         if (shieldObject == null && forceFieldController != null)
             shieldObject = forceFieldController.gameObject;
+
         health = maxHealth;
         shield = maxShield;
         fuel = maxFuel;
@@ -39,22 +50,25 @@ public class SpaceShip : MonoBehaviour, IDamageable
     void Start()
     {
         isAlive = true;
-        // start in a state consistent with the flag
         if (shieldObject != null) shieldObject.SetActive(isShieldActive);
     }
 
-    void Update()
+    private void Update()
     {
-        
+        if (!isAlive) return;
+        // Example input handling for movement and shield toggle
+       
+        if (Keyboard.current.cKey.wasPressedThisFrame)
+        {
+            ToggleShield();
+        }
     }
-
-   
 
     /// Called by projectiles so the shield can ripple at the impact point.
     public void OnProjectileHit(Vector2 worldPoint)
     {
         if (isShieldActive && forceFieldController != null)
-            forceFieldController.Hit(worldPoint, 1f);
+            forceFieldController.Hit(worldPoint, projectileRippleStrength);
     }
 
     public void TakeDamage(int damage)
@@ -83,7 +97,7 @@ public class SpaceShip : MonoBehaviour, IDamageable
 
     private void BreakShield()
     {
-        isShieldActive = false;       // damage goes to health from now on
+        isShieldActive = false;
         isAnimationPlaying = true;
         forceFieldController.PlayAnimation(() =>
         {
@@ -92,13 +106,12 @@ public class SpaceShip : MonoBehaviour, IDamageable
         });
     }
 
-    /// Shows the shield object, then plays the "appear" animation in reverse.
     private void ActivateShield()
     {
         isShieldActive = true;
         isAnimationPlaying = true;
-        shieldObject.SetActive(true);        // must be active before starting the coroutine
-        forceFieldController.Restore();      // clear stale ripples / progress
+        shieldObject.SetActive(true);
+        forceFieldController.Restore();
         forceFieldController.PlayAnimation(() =>
         {
             forceFieldController.Restore();
@@ -115,19 +128,10 @@ public class SpaceShip : MonoBehaviour, IDamageable
     [ContextMenu("Toggle Shield")]
     public void ToggleShield()
     {
-        if (isAnimationPlaying) return;   // let the current animation finish
+        if (isAnimationPlaying) return;
 
-        if (isShieldActive)
-        {
-            BreakShield();
-        }
-        else if (shield > 0)
-        {
-            ActivateShield();
-        }
-        else
-        {
-            Debug.Log("Can't activate shield: it has no charge. Call RestoreShield() first.");
-        }
+        if (isShieldActive) BreakShield();
+        else if (shield > 0) ActivateShield();
+        else Debug.Log("Can't activate shield: it has no charge. Call RestoreShield() first.");
     }
 }
