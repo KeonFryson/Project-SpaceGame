@@ -6,18 +6,13 @@ using UnityEngine.InputSystem;
 /// actual Camera, or the Camera itself if you don't need to tilt it). Pans on the XZ plane
 /// (or XY if useXYPlane is set for a 2D-style top-down game) and zooms an orthographic camera.
 ///
-/// Movement inputs, in priority order — the first one active each frame wins so they don't fight:
+/// Movement inputs, in priority order - the first one active each frame wins so they don't fight:
 ///   1. Middle-mouse drag pan
 ///   2. WASD / arrow keys
-///   3. Edge-of-screen pan (optional, off by default so it doesn't fire in the editor when the
-///      mouse is just resting near a panel)
+///   3. Edge-of-screen pan (optional, off by default)
 ///
 /// Zoom is mouse-scroll-wheel driven and (for an orthographic camera) changes orthographic
-/// size directly; for a perspective camera it dollies the rig forward/back along its own
-/// look direction instead.
-///
-/// Optionally clamps the pan position to a world-space rectangle, which you can wire up to
-/// ExcavationManager's grid bounds so the camera can't wander off into the void.
+/// size directly; for a perspective camera it dollies the rig forward/back instead.
 /// </summary>
 [DisallowMultipleComponent]
 public class TopDownCameraController : MonoBehaviour
@@ -30,19 +25,19 @@ public class TopDownCameraController : MonoBehaviour
     [Tooltip("If true, pans on the XY plane (2D top-down). If false, pans on the XZ plane (3D top-down, Y is up).")]
     [SerializeField] private bool useXYPlane = false;
 
-    [Header("Pan — Keyboard")]
+    [Header("Pan - Keyboard")]
     [SerializeField] private bool enableKeyboardPan = true;
     [SerializeField] private float panSpeed = 20f;
     [Tooltip("Multiplies panSpeed while Shift is held.")]
     [SerializeField] private float sprintMultiplier = 2f;
 
-    [Header("Pan — Middle-Mouse Drag")]
+    [Header("Pan - Middle-Mouse Drag")]
     [SerializeField] private bool enableDragPan = true;
     [Tooltip("World units the camera moves per pixel of mouse drag, per unit of ortho size / zoom distance.")]
     [SerializeField] private float dragPanSensitivity = 0.05f;
 
-    [Header("Pan — Screen Edge")]
-    [Tooltip("Off by default — enable for a classic RTS edge-scroll feel.")]
+    [Header("Pan - Screen Edge")]
+    [Tooltip("Off by default - enable for a classic RTS edge-scroll feel.")]
     [SerializeField] private bool enableEdgePan = false;
     [SerializeField] private float edgePanBorderPixels = 12f;
     [SerializeField] private float edgePanSpeed = 20f;
@@ -91,6 +86,7 @@ public class TopDownCameraController : MonoBehaviour
 
     private void Update()
     {
+        if (GameFlow.InputBlocked) { isDragPanning = false; return; }   // title / menus / pause
         if (Mouse.current == null) return;
 
         HandleZoom();
@@ -150,7 +146,7 @@ public class TopDownCameraController : MonoBehaviour
         Vector2 delta = currentMouseScreenPos - lastMouseScreenPos;
         lastMouseScreenPos = currentMouseScreenPos;
 
-        if (delta.sqrMagnitude < 0.0001f) return true; // still "consumed" — we own the frame, just no movement
+        if (delta.sqrMagnitude < 0.0001f) return true; // still "consumed" - we own the frame, just no movement
 
         // Scale drag distance by current zoom so it feels consistent whether zoomed in or out.
         float zoomScale = cam.orthographic ? cam.orthographicSize : targetPerspectiveDistance;
@@ -254,16 +250,26 @@ public class TopDownCameraController : MonoBehaviour
 
     public void SetmaxOrthoSize(float maxSize)
     {
-        Debug.Log($"TopDownCameraController: setting maxOrthoSize to {maxSize}");
         maxOrthoSize = maxSize;
         targetOrthoSize = Mathf.Clamp(targetOrthoSize, minOrthoSize, maxOrthoSize);
-        Debug.Log($"TopDownCameraController: targetOrthoSize now {targetOrthoSize}");
+    }
+
+    public float OrthoSize => cam != null ? cam.orthographicSize : 0f;
+
+    /// <summary>Smoothly zooms to this ortho size (clamped to min/max).</summary>
+    public void ZoomTo(float size) => targetOrthoSize = Mathf.Clamp(size, minOrthoSize, maxOrthoSize);
+
+    /// <summary>Instantly restores a saved camera position and zoom.</summary>
+    public void RestoreView(Vector3 pos, float size)
+    {
+        transform.position = pos;
+        targetOrthoSize = Mathf.Clamp(size, minOrthoSize, maxOrthoSize);
+        currentOrthoSizeVelocity = 0f;
+        if (cam != null && cam.orthographic) cam.orthographicSize = targetOrthoSize;
     }
 
     /// <summary>
-    /// Sets the pan bounds from a world-space min/max rect and enables clamping. Handy to call
-    /// from ExcavationManager once the starter layout is seeded, e.g.
-    /// cameraController.SetBounds(min, max) using GridToWorld on the grid's corner cells.
+    /// Sets the pan bounds from a world-space min/max rect and enables clamping.
     /// </summary>
     public void SetBounds(Vector2 min, Vector2 max)
     {

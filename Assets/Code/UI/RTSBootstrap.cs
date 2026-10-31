@@ -18,5 +18,6 @@ public static class RTSBootstrap
         go.AddComponent<GameClock>();
         go.AddComponent<SelectionManager>();
         go.AddComponent<RTSUI>();
+        go.AddComponent<MenuManager>();   // must come after RTSUI
     }
 }

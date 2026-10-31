@@ -9,6 +9,7 @@ using UnityEngine.UI;
 ///  - top bar: system name, the 8 resources (empire totals), game clock + speed buttons
 ///  - info panel (bottom-left): whatever is selected
 ///  - controls hint (bottom-right)
+/// Scales to any screen shape (see UIFit) and respects the device safe area.
 /// Uses TextMeshPro (needs TMP Essential Resources imported once:
 /// Window > TextMeshPro > Import TMP Essential Resources).
 /// </summary>
@@ -99,15 +100,18 @@ public class RTSUI : MonoBehaviour
         var canvas = cgo.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
         canvas.sortingOrder = 100;
-        var scaler = cgo.AddComponent<CanvasScaler>();
-        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-        scaler.referenceResolution = new Vector2(1920f, 1080f);
-        scaler.matchWidthOrHeight = 0.5f;
+        cgo.AddComponent<CanvasScaler>();
+        cgo.AddComponent<UIFit>();            // fits the 1920x1080 layout to any aspect ratio
         cgo.AddComponent<GraphicRaycaster>();
 
-        BuildTopBar(cgo.transform);
-        BuildInfoPanel(cgo.transform);
-        BuildHint(cgo.transform);
+        // everything lives inside the safe area (notches / rounded corners)
+        var safe = NewRect("SafeArea", cgo.transform);
+        Stretch(safe, 0f, 0f, 0f, 0f);
+        safe.gameObject.AddComponent<SafeAreaFitter>();
+
+        BuildTopBar(safe);
+        BuildInfoPanel(safe);
+        BuildHint(safe);
     }
 
     void BuildTopBar(Transform parent)
@@ -122,27 +126,28 @@ public class RTSUI : MonoBehaviour
 
         var layout = bar.gameObject.AddComponent<HorizontalLayoutGroup>();
         layout.padding = new RectOffset(14, 14, 0, 0);
-        layout.spacing = 16f;
+        layout.spacing = 12f;
         layout.childAlignment = TextAnchor.MiddleLeft;
         layout.childControlWidth = true;
         layout.childControlHeight = true;
         layout.childForceExpandWidth = false;
         layout.childForceExpandHeight = true;
 
-        systemLabel = NewText(bar, "System", 18, TextAlignmentOptions.MidlineLeft, FontStyles.Bold);
-        SetLayout(systemLabel.gameObject, 230f);
+        // Labels shrink their font instead of overflowing, so the bar always fits the 1920 reference width.
+        systemLabel = NewText(bar, "System", 18, TextAlignmentOptions.MidlineLeft, FontStyles.Bold, 11f);
+        SetLayout(systemLabel.gameObject, 200f);
 
         for (int i = 0; i < ResourceInfo.Count; i++)
         {
-            resLabels[i] = NewText(bar, "Res" + i, 16, TextAlignmentOptions.MidlineLeft);
-            SetLayout(resLabels[i].gameObject, i == (int)ResourceType.ResearchData ? 170f : 140f);
+            resLabels[i] = NewText(bar, "Res" + i, 16, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 10f);
+            SetLayout(resLabels[i].gameObject, i == (int)ResourceType.ResearchData ? 150f : 135f);
         }
 
         var spacer = NewRect("Spacer", bar);
         SetLayout(spacer.gameObject, 0f, 1f);
 
-        clockLabel = NewText(bar, "Clock", 16, TextAlignmentOptions.MidlineRight);
-        SetLayout(clockLabel.gameObject, 130f);
+        clockLabel = NewText(bar, "Clock", 16, TextAlignmentOptions.MidlineRight, FontStyles.Normal, 10f);
+        SetLayout(clockLabel.gameObject, 120f);
 
         string[] labels = { "II", "1x", "2x", "4x" };
         for (int i = 0; i < 4; i++)
@@ -171,7 +176,7 @@ public class RTSUI : MonoBehaviour
         rt.gameObject.AddComponent<Image>().color = PanelColor;
         infoPanel = rt.gameObject;
 
-        infoTitle = NewText(rt, "Title", 22, TextAlignmentOptions.MidlineLeft, FontStyles.Bold);
+        infoTitle = NewText(rt, "Title", 22, TextAlignmentOptions.MidlineLeft, FontStyles.Bold, 14f);
         var tr = infoTitle.rectTransform;
         tr.anchorMin = new Vector2(0f, 1f);
         tr.anchorMax = new Vector2(1f, 1f);
@@ -179,7 +184,7 @@ public class RTSUI : MonoBehaviour
         tr.sizeDelta = new Vector2(-24f, 34f);
         tr.anchoredPosition = new Vector2(0f, -8f);
 
-        infoBody = NewText(rt, "Body", 14, TextAlignmentOptions.TopLeft);
+        infoBody = NewText(rt, "Body", 14, TextAlignmentOptions.TopLeft, FontStyles.Normal, 9f);
         infoBody.textWrappingMode = TextWrappingModes.Normal;
         infoBody.overflowMode = TextOverflowModes.Truncate;
         Stretch(infoBody.rectTransform, 12f, 12f, 12f, 46f);
@@ -189,13 +194,13 @@ public class RTSUI : MonoBehaviour
 
     void BuildHint(Transform parent)
     {
-        var t = NewText(parent, "Hint", 13, TextAlignmentOptions.BottomRight);
+        var t = NewText(parent, "Hint", 13, TextAlignmentOptions.BottomRight, FontStyles.Normal, 9f);
         t.color = new Color(1f, 1f, 1f, 0.45f);
         var rt = t.rectTransform;
         rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(1f, 0f);
         rt.anchoredPosition = new Vector2(-12f, 10f);
         rt.sizeDelta = new Vector2(760f, 22f);
-        t.text = "LMB select   MMB drag / WASD pan   Scroll zoom   P pause   1-3 speed   H home   M map   Esc deselect";
+        t.text = "LMB select   MMB drag / WASD pan   Scroll zoom   P pause   1-3 speed   H home   M map   Esc deselect / pause";
     }
 
     // ------------------------------------------------------------------ helpers
@@ -208,7 +213,7 @@ public class RTSUI : MonoBehaviour
     }
 
     TMP_Text NewText(Transform parent, string name, float size, TextAlignmentOptions align,
-                     FontStyles style = FontStyles.Normal)
+                     FontStyles style = FontStyles.Normal, float minSize = 0f)
     {
         var rt = NewRect(name, parent);
         var t = rt.gameObject.AddComponent<TextMeshProUGUI>();   // uses the default TMP font asset
@@ -220,6 +225,12 @@ public class RTSUI : MonoBehaviour
         t.raycastTarget = false;
         t.textWrappingMode = TextWrappingModes.NoWrap;
         t.overflowMode = TextOverflowModes.Overflow;
+        if (minSize > 0f)   // shrink to fit instead of spilling into the neighbour
+        {
+            t.enableAutoSizing = true;
+            t.fontSizeMax = size;
+            t.fontSizeMin = minSize;
+        }
         return t;
     }
 

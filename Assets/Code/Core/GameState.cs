@@ -113,6 +113,68 @@ public class GameState : MonoBehaviour
         foreach (var (type, amount) in GameConfig.StartingStock) st.stock.Add(type, amount);
     }
 
+    // ------------------------------------------------------------------ save / load
+
+    public void ExportSave(SaveData d)
+    {
+        d.homeSystemId = HomeSystemId;
+        d.homeBodyIndex = HomeBodyIndex;
+        d.researchData = ResearchData;
+        d.bodies = new List<BodySave>(bodies.Count);
+
+        foreach (var st in bodies.Values)
+        {
+            var b = new BodySave
+            {
+                systemId = st.systemId,
+                bodyIndex = st.bodyIndex,
+                deposits = (float[])st.deposits.Clone(),
+                depositsMax = (float[])st.depositsMax.Clone(),
+                fertility = st.fertility,
+                anomalyName = st.anomalyName ?? "",
+                owned = st.owned,
+                isHome = st.isHome,
+                stockCapacity = st.stock.capacity,
+                stock = new float[ResourceInfo.Count]
+            };
+            for (int i = 0; i < ResourceInfo.Count; i++) b.stock[i] = st.stock.Get((ResourceType)i);
+            d.bodies.Add(b);
+        }
+    }
+
+    public void ImportSave(GalaxyData galaxy, SaveData d)
+    {
+        Galaxy = galaxy;
+        bodies.Clear();
+        owned.Clear();
+        HomeSystemId = d.homeSystemId;
+        HomeBodyIndex = d.homeBodyIndex;
+        ResearchData = d.researchData;
+
+        foreach (var b in d.bodies)
+        {
+            var st = new BodyState(b.systemId, b.bodyIndex);
+            CopyInto(b.deposits, st.deposits);
+            CopyInto(b.depositsMax, st.depositsMax);
+            st.fertility = b.fertility;
+            st.anomalyName = string.IsNullOrEmpty(b.anomalyName) ? null : b.anomalyName;
+            st.owned = b.owned;
+            st.isHome = b.isHome;
+            st.stock.capacity = b.stockCapacity > 0f ? b.stockCapacity : GameConfig.DefaultStockCapacity;
+            if (b.stock != null)
+                for (int i = 0; i < Mathf.Min(b.stock.Length, ResourceInfo.Count); i++)
+                    st.stock.Set((ResourceType)i, b.stock[i]);
+
+            bodies[BodyState.Key(b.systemId, b.bodyIndex)] = st;
+            if (st.owned) owned.Add(st);
+        }
+    }
+
+    static void CopyInto(float[] src, float[] dst)
+    {
+        if (src != null) Array.Copy(src, dst, Mathf.Min(src.Length, dst.Length));
+    }
+
     // ------------------------------------------------------------------ queries
 
     /// <summary>State for a body, generated and cached on first access.</summary>

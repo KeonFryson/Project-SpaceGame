@@ -56,12 +56,7 @@ public class SpaceShip : MonoBehaviour, IDamageable
     private void Update()
     {
         if (!isAlive) return;
-        // Example input handling for movement and shield toggle
-       
-        if (Keyboard.current.cKey.wasPressedThisFrame)
-        {
-            ToggleShield();
-        }
+        if (GameInput.Actions.Ship.ToggleShield.WasPressedThisFrame()) ToggleShield();
     }
 
     /// Called by projectiles so the shield can ripple at the impact point.

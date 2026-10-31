@@ -20,7 +20,7 @@ public class GameClock : MonoBehaviour
     public float GameTime { get; private set; }
 
     /// <summary>Game-time delta for this frame.</summary>
-    public float Dt => Time.deltaTime * Scale;
+    public float Dt => GameFlow.InputBlocked ? 0f : Time.deltaTime * Scale;
 
     int lastRunning = 1;
 
@@ -34,8 +34,16 @@ public class GameClock : MonoBehaviour
 
     public void TogglePause() => SetSpeed(Paused ? lastRunning : 0);
 
+    public void Restore(float gameTime, int speedIndex)
+    {
+        GameTime = gameTime;
+        SetSpeed(speedIndex);
+    }
+
     void Update()
     {
+        if (GameFlow.InputBlocked) return;   // title / menus / pause
+
         var kb = Keyboard.current;
         if (kb != null)
         {

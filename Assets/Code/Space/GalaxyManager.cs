@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 /// <summary>
 /// Entry point. Generates a galaxy (data only), then opens one solar system at a time.
-/// Debug keys (toggle off in the inspector): R = random system, M = toggle galaxy map, G = brand new galaxy.
+/// Debug keys (toggle off in the inspector): R = random system, M = toggle galaxy map, G = brand new game.
 /// </summary>
 public class GalaxyManager : MonoBehaviour
 {
@@ -23,24 +23,28 @@ public class GalaxyManager : MonoBehaviour
     [SerializeField] GalaxyMapView mapView;
     [Tooltip("Optional. Needs useXYPlane = true for a 2D game.")]
     [SerializeField] TopDownCameraController cameraController;
-
+    [Header("Menu backdrop")]
+    [Tooltip("1.1 = whole system just fits. Lower = zoomed in more (0.5 = half the system visible).")]
+    [SerializeField, Range(0.1f, 1.5f)] float overviewZoom = 0.6f;
     [Header("Debug")]
     [SerializeField] bool debugKeys = true;
 
     public GalaxyData Galaxy { get; private set; }
     public SolarSystemData CurrentSystem { get; private set; }
+    public bool MapOpen => mapView != null && mapView.IsOpen;
     public event System.Action<SolarSystemData> SystemLoaded;
-
+    bool overview;
     void Start()
     {
         CelestialBody.OrbitTimeScale = 0;
 
         if (mapView != null) mapView.SystemClicked += LoadSystem;
 
+        // This first game is the backdrop behind the title screen; "New Game" generates a fresh one.
         GenerateGalaxy(randomizeSeedOnStart ? Random.Range(1, int.MaxValue) : galaxySeed);
         LoadSystem(GameState.Instance != null
-     ? GameState.Instance.InitNewGame(Galaxy)
-     : new System.Random(Galaxy.seed).Next(Galaxy.systems.Count));
+            ? GameState.Instance.InitNewGame(Galaxy)
+            : new System.Random(Galaxy.seed).Next(Galaxy.systems.Count));
     }
 
     public void GenerateGalaxy(int seed)
@@ -51,6 +55,109 @@ public class GalaxyManager : MonoBehaviour
         Debug.Log($"Galaxy {seed}: {Galaxy.systems.Count} systems");
     }
 
+    // ------------------------------------------------------------------ new game / save / load
+
+    /// <summary>Title / main menu backdrop: whole solar system centred and fully visible.</summary>
+    public void EnterOverview()
+    {
+        overview = true;
+        FrameFullSystem();
+    }
+
+    /// <summary>Leaving the menus: restore the normal zoom limit for this system.</summary>
+    public void ExitOverview()
+    {
+        if (!overview) return;
+        overview = false;
+        if (cameraController != null && CurrentSystem != null)
+            cameraController.SetmaxOrthoSize(CurrentSystem.radius * 1.1f);
+    }
+
+    void FrameFullSystem()
+    {
+        if (cameraController == null || CurrentSystem == null) return;
+
+        // Ortho size is half the screen height, so on narrow (non-wide) screens grow it to fit the width too.
+        float aspect = Camera.main != null ? Camera.main.aspect : 1.78f;
+        float size = CurrentSystem.radius * overviewZoom / Mathf.Min(1f, aspect);
+
+        cameraController.SetmaxOrthoSize(size);
+        cameraController.FocusOn(spawner.transform.position);
+        // instant (the camera script is paused while menus are open, so it can't smooth the zoom itself)
+        cameraController.RestoreView(cameraController.transform.position, size);
+    }
+
+    /// <summary>Brand new galaxy + home planet + reset clock. seed 0 = random.</summary>
+    public void StartNewGame(int seed = 0)
+    {
+        CloseMap();
+        GenerateGalaxy(seed != 0 ? seed : Random.Range(1, int.MaxValue));
+        if (GameClock.Instance != null) GameClock.Instance.Restore(0f, 1);
+        LoadSystem(GameState.Instance != null
+            ? GameState.Instance.InitNewGame(Galaxy)
+            : Random.Range(0, Galaxy.systems.Count));
+    }
+
+    public SaveData CaptureSave()
+    {
+        var d = new SaveData
+        {
+            timestamp = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm"),
+            ticks = System.DateTime.UtcNow.Ticks,
+            galaxySeed = Galaxy.seed,
+            systemCount = systemCount,
+            galaxyRadius = galaxyRadius,
+            shape = (int)shape,
+            spiralArms = spiralArms,
+            spiralTwist = spiralTwist,
+            minSystemDistance = minSystemDistance,
+            currentSystemId = CurrentSystem != null ? CurrentSystem.id : 0,
+            currentSystemName = CurrentSystem != null ? CurrentSystem.name : ""
+        };
+
+        if (GameState.Instance != null) GameState.Instance.ExportSave(d);
+        if (GameClock.Instance != null)
+        {
+            d.gameTime = GameClock.Instance.GameTime;
+            d.speedIndex = GameClock.Instance.SpeedIndex;
+        }
+        if (cameraController != null && !MapOpen)
+        {
+            var p = cameraController.transform.position;
+            d.hasCamera = true;
+            d.camX = p.x; d.camY = p.y; d.camZ = p.z;
+            d.orthoSize = cameraController.OrthoSize;
+        }
+        return d;
+    }
+
+    public bool LoadGame(SaveData d)
+    {
+        if (d == null || GameState.Instance == null) return false;
+
+        CloseMap();
+
+        // use the settings the save was made with
+        if (d.systemCount > 0) systemCount = d.systemCount;
+        if (d.galaxyRadius > 0f) galaxyRadius = d.galaxyRadius;
+        shape = (GalaxyShape)d.shape;
+        if (d.spiralArms > 0) spiralArms = d.spiralArms;
+        spiralTwist = d.spiralTwist;
+        if (d.minSystemDistance > 0f) minSystemDistance = d.minSystemDistance;
+
+        GenerateGalaxy(d.galaxySeed);
+        GameState.Instance.ImportSave(Galaxy, d);
+        if (GameClock.Instance != null) GameClock.Instance.Restore(d.gameTime, d.speedIndex);
+
+        LoadSystem(Mathf.Clamp(d.currentSystemId, 0, Galaxy.systems.Count - 1));
+
+        if (d.hasCamera && cameraController != null)
+            cameraController.RestoreView(new Vector3(d.camX, d.camY, d.camZ), d.orthoSize);
+        return true;
+    }
+
+    // ------------------------------------------------------------------ systems / map
+
     public void LoadSystem(int id)
     {
         if (Galaxy == null || id < 0 || id >= Galaxy.systems.Count) return;
@@ -59,11 +166,15 @@ public class GalaxyManager : MonoBehaviour
         CurrentSystem = SolarSystemGenerator.Generate(info.seed, info.id, info.position);
 
         if (mapView != null) mapView.Hide();
-        spawner.Spawn(CurrentSystem);
+        spawner.Spawn(CurrentSystem);   // builds a fresh, visible system
+
+        // The galaxy map zooms way out; always go back to this system's zoom range.
+        if (cameraController != null) cameraController.SetmaxOrthoSize(CurrentSystem.radius * 1.1f);
         FrameSystem();
 
         Debug.Log($"Loaded {CurrentSystem.name} ({CurrentSystem.starClass}), {CurrentSystem.bodies.Count} bodies");
         SystemLoaded?.Invoke(CurrentSystem);
+        if (overview) FrameFullSystem();
     }
 
     public void LoadRandomSystem() => LoadSystem(Random.Range(0, Galaxy.systems.Count));
@@ -74,11 +185,7 @@ public class GalaxyManager : MonoBehaviour
 
         if (mapView.IsOpen)
         {
-            mapView.Hide();
-            spawner.SetVisible(true);
-            if (cameraController != null && CurrentSystem != null)
-                cameraController.SetmaxOrthoSize(CurrentSystem.radius * 1.1f);
-            FrameSystem();
+            CloseMap();
         }
         else
         {
@@ -88,6 +195,18 @@ public class GalaxyManager : MonoBehaviour
                 cameraController.SetmaxOrthoSize(Galaxy.radius * 1.1f);
             FrameGalaxy();
         }
+    }
+
+    /// <summary>Closes the galaxy map (if open) and returns to the current solar system.</summary>
+    public void CloseMap()
+    {
+        if (mapView == null || !mapView.IsOpen) return;
+
+        mapView.Hide();
+        spawner.SetVisible(true);
+        if (cameraController != null && CurrentSystem != null)
+            cameraController.SetmaxOrthoSize(CurrentSystem.radius * 1.1f);
+        FrameSystem();
     }
 
     void FrameSystem()
@@ -103,24 +222,37 @@ public class GalaxyManager : MonoBehaviour
         if (cameraController == null) return;
         var e = Vector2.one * Galaxy.radius * 1.1f;
         cameraController.SetBounds(-e, e);
-        cameraController.FocusOn(Vector3.zero);
+
+        // Centre on the system we just left, so the green marker is in the middle of the screen.
+        Vector3 focus = Vector3.zero;
+        if (CurrentSystem != null)
+        {
+            Vector2 p = CurrentSystem.galaxyPosition;
+            focus = mapView != null
+                ? mapView.transform.TransformPoint(new Vector3(p.x, p.y, 0f))
+                : new Vector3(p.x, p.y, 0f);
+        }
+        cameraController.FocusOn(focus);
     }
 
     void Update()
     {
-        if (Keyboard.current.mKey.wasPressedThisFrame) ToggleMap();
+        var kb = Keyboard.current;
+        if (kb == null || GameFlow.InputBlocked) return;
 
+        if (kb.mKey.wasPressedThisFrame) ToggleMap();
 
-        if (!debugKeys || Keyboard.current == null || Galaxy == null) return;
+        if (!debugKeys || Galaxy == null) return;
 
-        if (Keyboard.current.rKey.wasPressedThisFrame) LoadRandomSystem();
-        
+        if (kb.rKey.wasPressedThisFrame) LoadRandomSystem();
+        if (kb.gKey.wasPressedThisFrame) StartNewGame();   // G = brand new game
+    }
 
-        if (Keyboard.current.gKey.wasPressedThisFrame)   // G = brand new galaxy
-        {
-            GenerateGalaxy(Random.Range(1, int.MaxValue));
-            if (GameState.Instance != null) LoadSystem(GameState.Instance.InitNewGame(Galaxy));
-            else LoadRandomSystem();
-        }
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        float aspect = Camera.main != null ? Camera.main.aspect : 2f;
+        float size = CurrentSystem.radius * overviewZoom / Mathf.Min(1f, aspect);
+        if (CurrentSystem != null) Gizmos.DrawWireSphere(Vector3.zero, size);
     }
 }

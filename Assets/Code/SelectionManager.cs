@@ -20,6 +20,8 @@ public class SelectionManager : MonoBehaviour
 {
     public static SelectionManager Instance { get; private set; }
 
+    const float HomeZoom = 20f;
+
     public Component Selected { get; private set; }
     public event System.Action SelectionChanged;
 
@@ -70,23 +72,22 @@ public class SelectionManager : MonoBehaviour
 
     void Update()
     {
-        if (hasSelection && Selected == null) Select(null);   // selected object was destroyed
+        if (hasSelection && Selected == null) Select(null);  // selected object was destroyed
+        if (GameFlow.InputBlocked) return;                    // title / menus / pause
+        if (GameFlow.Mode != GameMode.Playing) { Select(null); return; }            // only in RTS mode
 
-        var kb = Keyboard.current;
-        if (kb != null)
-        {
-            if (kb.escapeKey.wasPressedThisFrame) Select(null);
-            if (kb.hKey.wasPressedThisFrame) FocusHome();
-        }
+        var rts = GameInput.Actions.RTS;
+        if (rts.Deselect.WasPressedThisFrame()) Select(null);
+        if (rts.ToggleMap.WasPressedThisFrame()) Select(null);
+        if (rts.FocusHome.WasPressedThisFrame()) FocusHome();
 
-        var mouse = Mouse.current;
-        if (mouse == null || !mouse.leftButton.wasPressedThisFrame) return;
+        if (!rts.Select.WasPressedThisFrame()) return;
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
 
         if (cam == null) cam = Camera.main;
         if (cam == null) return;
 
-        Vector2 world = cam.ScreenToWorldPoint(mouse.position.ReadValue());
+        Vector2 world = cam.ScreenToWorldPoint(rts.Point.ReadValue<Vector2>());
         Select(Pick(world));
     }
 
@@ -131,6 +132,9 @@ public class SelectionManager : MonoBehaviour
         var gs = GameState.Instance;
         if (gs == null || galaxy == null || gs.HomeSystemId < 0) return;
 
+        // The galaxy map hides the system and zooms way out, so leave it first.
+        if (galaxy.MapOpen) galaxy.CloseMap();
+
         if (galaxy.CurrentSystem != null && galaxy.CurrentSystem.id == gs.HomeSystemId)
         {
             FocusHomeBody();
@@ -150,7 +154,11 @@ public class SelectionManager : MonoBehaviour
         {
             if (cb.index != gs.HomeBodyIndex) continue;
             Select(cb);
-            if (camCtl != null) camCtl.FocusOn(cb.transform.position);
+            if (camCtl != null)
+            {
+                camCtl.FocusOn(cb.transform.position);
+                camCtl.ZoomTo(Mathf.Min(camCtl.OrthoSize, HomeZoom));   // never stay zoomed far out
+            }
             return;
         }
     }

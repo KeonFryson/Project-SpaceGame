@@ -40,7 +40,7 @@ public class GalaxyMapView : MonoBehaviour
 
     void Update()
     {
-        if (galaxy == null || Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame) return;
+        if (GameFlow.InputBlocked || galaxy == null || Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame) return;
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
         if (cam == null) cam = Camera.main;
         if (cam == null) return;

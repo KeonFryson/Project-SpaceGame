@@ -1077,6 +1077,489 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""RTS"",
+            ""id"": ""40a1971a-9967-4063-99fd-6de8c03d951e"",
+            ""actions"": [
+                {
+                    ""name"": ""Pan"",
+                    ""type"": ""Value"",
+                    ""id"": ""1eb1dac2-263e-4cf8-b4a6-4192f430c4de"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""PanBoost"",
+                    ""type"": ""Button"",
+                    ""id"": ""a3311bc9-9de7-4398-9dfb-0b66984a979f"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""DragPan"",
+                    ""type"": ""Button"",
+                    ""id"": ""28b1c216-73c5-4364-ac1f-bfa21b28eb2a"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Zoom"",
+                    ""type"": ""Value"",
+                    ""id"": ""fecf865c-84f1-4118-8362-1047a02bdc65"",
+                    ""expectedControlType"": ""Axis"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Point"",
+                    ""type"": ""Value"",
+                    ""id"": ""dbe8ba7f-fb62-4c6d-bf01-3c99a00cf5b2"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Select"",
+                    ""type"": ""Button"",
+                    ""id"": ""807eaa28-bc66-4ee1-b021-60b73973b2e3"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Deselect"",
+                    ""type"": ""Button"",
+                    ""id"": ""f7b10324-25ac-490e-a4c2-4f97efa2b9b7"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""FocusHome"",
+                    ""type"": ""Button"",
+                    ""id"": ""f80e33b5-7569-4609-9951-44d483dd3352"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""TogglePause"",
+                    ""type"": ""Button"",
+                    ""id"": ""60f63710-8fae-42ca-9224-4ce5369c35f9"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Speed1"",
+                    ""type"": ""Button"",
+                    ""id"": ""31c64c34-9814-4cd0-944f-84d65929c14f"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Speed2"",
+                    ""type"": ""Button"",
+                    ""id"": ""de9a9dd3-e6f8-45a1-afd8-6e4b9c9ea3ce"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Speed3"",
+                    ""type"": ""Button"",
+                    ""id"": ""ef0b86b6-d8bf-4c92-ae8a-402da908c0c5"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ToggleMap"",
+                    ""type"": ""Button"",
+                    ""id"": ""36b16b13-7a48-48cf-ad6a-c7b9c2c3ba50"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": ""WASD"",
+                    ""id"": ""b3d3037e-3867-425e-99fd-1530a0fc1cb1"",
+                    ""path"": ""Dpad"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Pan"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""up"",
+                    ""id"": ""6d2a46a0-7c8e-4cac-874e-663bb1f09150"",
+                    ""path"": ""<Keyboard>/w"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""Pan"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""up"",
+                    ""id"": ""cb91b567-d00c-403c-a063-7275f6e8dcd9"",
+                    ""path"": ""<Keyboard>/upArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""Pan"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""down"",
+                    ""id"": ""8d24fd11-d643-4230-84a8-358396046633"",
+                    ""path"": ""<Keyboard>/s"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""Pan"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""down"",
+                    ""id"": ""5fc391ca-70d9-4524-ac18-f303e8d210be"",
+                    ""path"": ""<Keyboard>/downArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""Pan"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""left"",
+                    ""id"": ""65b54c41-707d-4d70-8c1a-f4f4820d9a4c"",
+                    ""path"": ""<Keyboard>/a"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""Pan"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""left"",
+                    ""id"": ""bc60b323-d4c8-4b26-b88f-e3adda4dddca"",
+                    ""path"": ""<Keyboard>/leftArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""Pan"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""right"",
+                    ""id"": ""37c9f96c-0343-440a-8f3a-2150c9285685"",
+                    ""path"": ""<Keyboard>/d"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""Pan"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""right"",
+                    ""id"": ""89e9eacd-7c17-49d0-abc8-89fe52fde933"",
+                    ""path"": ""<Keyboard>/rightArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": "";Keyboard&Mouse"",
+                    ""action"": ""Pan"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8ddd1950-6523-4621-9d4a-e0ffbe858801"",
+                    ""path"": ""<Keyboard>/leftShift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PanBoost"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ca9ea93f-07c8-439f-8a85-84e7a8477164"",
+                    ""path"": ""<Keyboard>/rightShift"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PanBoost"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""f0a605b9-0184-42a0-8ef1-82113f3312de"",
+                    ""path"": ""<Mouse>/middleButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""DragPan"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9c515f8c-2443-4cb2-825d-f595e543df6c"",
+                    ""path"": ""<Mouse>/scroll/y"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Zoom"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""becc60ee-3f7d-4594-8a0c-da65a22d0e39"",
+                    ""path"": ""<Mouse>/position"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Point"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e065558c-a4b3-4b10-be57-d6374b0a88d0"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Select"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9ac74bd5-e905-4eb9-a2bf-d47fa47d9e6c"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Deselect"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2e8364b1-ad72-47b5-863f-10d5add57b3a"",
+                    ""path"": ""<Keyboard>/h"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""FocusHome"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""fcd83c3e-ffe6-4683-9616-7bd7c402918f"",
+                    ""path"": ""<Keyboard>/p"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""TogglePause"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d8ade046-9009-4c5d-a8e8-2cf105766d16"",
+                    ""path"": ""<Keyboard>/1"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Speed1"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d59dac58-8fc0-4a58-97ba-5048177fb626"",
+                    ""path"": ""<Keyboard>/2"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Speed2"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""05a248e4-82e9-41bb-bebc-0b5bda5ae5cb"",
+                    ""path"": ""<Keyboard>/3"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Speed3"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""77912583-47f5-4d21-8b35-9080041cd3f9"",
+                    ""path"": ""<Keyboard>/m"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleMap"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
+        },
+        {
+            ""name"": ""Ship"",
+            ""id"": ""bd693d35-16a5-4bcb-a7e8-abddfdb9c3e0"",
+            ""actions"": [
+                {
+                    ""name"": ""ToggleShield"",
+                    ""type"": ""Button"",
+                    ""id"": ""0bdc2dd7-a897-44f7-8e90-680edd368c45"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""afc8faa7-b01a-4e38-91b7-27bc45440054"",
+                    ""path"": ""<Keyboard>/c"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleShield"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
+        },
+        {
+            ""name"": ""DebugTools"",
+            ""id"": ""697f1561-fbde-4b77-a873-9bc00b3aeed1"",
+            ""actions"": [
+                {
+                    ""name"": ""RandomSystem"",
+                    ""type"": ""Button"",
+                    ""id"": ""20a7a455-c730-4f0f-97b7-930aa1889fdf"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""NewGalaxy"",
+                    ""type"": ""Button"",
+                    ""id"": ""a5e0268b-ac7c-4d35-84de-467435db0bf1"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""TestHitCenter"",
+                    ""type"": ""Button"",
+                    ""id"": ""b1aade78-1e31-417e-ae0c-5aeddacaa02a"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""TestHitPointer"",
+                    ""type"": ""Button"",
+                    ""id"": ""8640d3bc-e793-4f84-9a57-e9a96ffa1aad"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""d81ee124-4db3-47db-850e-696a705b0202"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RandomSystem"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""960ee6d0-6418-421c-93e6-8092e95f325e"",
+                    ""path"": ""<Keyboard>/g"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""NewGalaxy"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""bbfa8693-d4d2-4f26-b75d-184d1100bbba"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""TestHitCenter"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3a73cc66-8c9d-4572-a0c8-e29a5f93ed49"",
+                    ""path"": ""<Mouse>/leftButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""TestHitPointer"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": [
@@ -1165,12 +1648,39 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_UI_ScrollWheel = m_UI.FindAction("ScrollWheel", throwIfNotFound: true);
         m_UI_TrackedDevicePosition = m_UI.FindAction("TrackedDevicePosition", throwIfNotFound: true);
         m_UI_TrackedDeviceOrientation = m_UI.FindAction("TrackedDeviceOrientation", throwIfNotFound: true);
+        // RTS
+        m_RTS = asset.FindActionMap("RTS", throwIfNotFound: true);
+        m_RTS_Pan = m_RTS.FindAction("Pan", throwIfNotFound: true);
+        m_RTS_PanBoost = m_RTS.FindAction("PanBoost", throwIfNotFound: true);
+        m_RTS_DragPan = m_RTS.FindAction("DragPan", throwIfNotFound: true);
+        m_RTS_Zoom = m_RTS.FindAction("Zoom", throwIfNotFound: true);
+        m_RTS_Point = m_RTS.FindAction("Point", throwIfNotFound: true);
+        m_RTS_Select = m_RTS.FindAction("Select", throwIfNotFound: true);
+        m_RTS_Deselect = m_RTS.FindAction("Deselect", throwIfNotFound: true);
+        m_RTS_FocusHome = m_RTS.FindAction("FocusHome", throwIfNotFound: true);
+        m_RTS_TogglePause = m_RTS.FindAction("TogglePause", throwIfNotFound: true);
+        m_RTS_Speed1 = m_RTS.FindAction("Speed1", throwIfNotFound: true);
+        m_RTS_Speed2 = m_RTS.FindAction("Speed2", throwIfNotFound: true);
+        m_RTS_Speed3 = m_RTS.FindAction("Speed3", throwIfNotFound: true);
+        m_RTS_ToggleMap = m_RTS.FindAction("ToggleMap", throwIfNotFound: true);
+        // Ship
+        m_Ship = asset.FindActionMap("Ship", throwIfNotFound: true);
+        m_Ship_ToggleShield = m_Ship.FindAction("ToggleShield", throwIfNotFound: true);
+        // DebugTools
+        m_DebugTools = asset.FindActionMap("DebugTools", throwIfNotFound: true);
+        m_DebugTools_RandomSystem = m_DebugTools.FindAction("RandomSystem", throwIfNotFound: true);
+        m_DebugTools_NewGalaxy = m_DebugTools.FindAction("NewGalaxy", throwIfNotFound: true);
+        m_DebugTools_TestHitCenter = m_DebugTools.FindAction("TestHitCenter", throwIfNotFound: true);
+        m_DebugTools_TestHitPointer = m_DebugTools.FindAction("TestHitPointer", throwIfNotFound: true);
     }
 
     ~@InputSystem_Actions()
     {
         UnityEngine.Debug.Assert(!m_Player.enabled, "This will cause a leak and performance issues, InputSystem_Actions.Player.Disable() has not been called.");
         UnityEngine.Debug.Assert(!m_UI.enabled, "This will cause a leak and performance issues, InputSystem_Actions.UI.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_RTS.enabled, "This will cause a leak and performance issues, InputSystem_Actions.RTS.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_Ship.enabled, "This will cause a leak and performance issues, InputSystem_Actions.Ship.Disable() has not been called.");
+        UnityEngine.Debug.Assert(!m_DebugTools.enabled, "This will cause a leak and performance issues, InputSystem_Actions.DebugTools.Disable() has not been called.");
     }
 
     /// <summary>
@@ -1621,6 +2131,459 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     /// Provides a new <see cref="UIActions" /> instance referencing this action map.
     /// </summary>
     public UIActions @UI => new UIActions(this);
+
+    // RTS
+    private readonly InputActionMap m_RTS;
+    private List<IRTSActions> m_RTSActionsCallbackInterfaces = new List<IRTSActions>();
+    private readonly InputAction m_RTS_Pan;
+    private readonly InputAction m_RTS_PanBoost;
+    private readonly InputAction m_RTS_DragPan;
+    private readonly InputAction m_RTS_Zoom;
+    private readonly InputAction m_RTS_Point;
+    private readonly InputAction m_RTS_Select;
+    private readonly InputAction m_RTS_Deselect;
+    private readonly InputAction m_RTS_FocusHome;
+    private readonly InputAction m_RTS_TogglePause;
+    private readonly InputAction m_RTS_Speed1;
+    private readonly InputAction m_RTS_Speed2;
+    private readonly InputAction m_RTS_Speed3;
+    private readonly InputAction m_RTS_ToggleMap;
+    /// <summary>
+    /// Provides access to input actions defined in input action map "RTS".
+    /// </summary>
+    public struct RTSActions
+    {
+        private @InputSystem_Actions m_Wrapper;
+
+        /// <summary>
+        /// Construct a new instance of the input action map wrapper class.
+        /// </summary>
+        public RTSActions(@InputSystem_Actions wrapper) { m_Wrapper = wrapper; }
+        /// <summary>
+        /// Provides access to the underlying input action "RTS/Pan".
+        /// </summary>
+        public InputAction @Pan => m_Wrapper.m_RTS_Pan;
+        /// <summary>
+        /// Provides access to the underlying input action "RTS/PanBoost".
+        /// </summary>
+        public InputAction @PanBoost => m_Wrapper.m_RTS_PanBoost;
+        /// <summary>
+        /// Provides access to the underlying input action "RTS/DragPan".
+        /// </summary>
+        public InputAction @DragPan => m_Wrapper.m_RTS_DragPan;
+        /// <summary>
+        /// Provides access to the underlying input action "RTS/Zoom".
+        /// </summary>
+        public InputAction @Zoom => m_Wrapper.m_RTS_Zoom;
+        /// <summary>
+        /// Provides access to the underlying input action "RTS/Point".
+        /// </summary>
+        public InputAction @Point => m_Wrapper.m_RTS_Point;
+        /// <summary>
+        /// Provides access to the underlying input action "RTS/Select".
+        /// </summary>
+        public InputAction @Select => m_Wrapper.m_RTS_Select;
+        /// <summary>
+        /// Provides access to the underlying input action "RTS/Deselect".
+        /// </summary>
+        public InputAction @Deselect => m_Wrapper.m_RTS_Deselect;
+        /// <summary>
+        /// Provides access to the underlying input action "RTS/FocusHome".
+        /// </summary>
+        public InputAction @FocusHome => m_Wrapper.m_RTS_FocusHome;
+        /// <summary>
+        /// Provides access to the underlying input action "RTS/TogglePause".
+        /// </summary>
+        public InputAction @TogglePause => m_Wrapper.m_RTS_TogglePause;
+        /// <summary>
+        /// Provides access to the underlying input action "RTS/Speed1".
+        /// </summary>
+        public InputAction @Speed1 => m_Wrapper.m_RTS_Speed1;
+        /// <summary>
+        /// Provides access to the underlying input action "RTS/Speed2".
+        /// </summary>
+        public InputAction @Speed2 => m_Wrapper.m_RTS_Speed2;
+        /// <summary>
+        /// Provides access to the underlying input action "RTS/Speed3".
+        /// </summary>
+        public InputAction @Speed3 => m_Wrapper.m_RTS_Speed3;
+        /// <summary>
+        /// Provides access to the underlying input action "RTS/ToggleMap".
+        /// </summary>
+        public InputAction @ToggleMap => m_Wrapper.m_RTS_ToggleMap;
+        /// <summary>
+        /// Provides access to the underlying input action map instance.
+        /// </summary>
+        public InputActionMap Get() { return m_Wrapper.m_RTS; }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+        public void Enable() { Get().Enable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+        public void Disable() { Get().Disable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+        public bool enabled => Get().enabled;
+        /// <summary>
+        /// Implicitly converts an <see ref="RTSActions" /> to an <see ref="InputActionMap" /> instance.
+        /// </summary>
+        public static implicit operator InputActionMap(RTSActions set) { return set.Get(); }
+        /// <summary>
+        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <param name="instance">Callback instance.</param>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+        /// </remarks>
+        /// <seealso cref="RTSActions" />
+        public void AddCallbacks(IRTSActions instance)
+        {
+            if (instance == null || m_Wrapper.m_RTSActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_RTSActionsCallbackInterfaces.Add(instance);
+            @Pan.started += instance.OnPan;
+            @Pan.performed += instance.OnPan;
+            @Pan.canceled += instance.OnPan;
+            @PanBoost.started += instance.OnPanBoost;
+            @PanBoost.performed += instance.OnPanBoost;
+            @PanBoost.canceled += instance.OnPanBoost;
+            @DragPan.started += instance.OnDragPan;
+            @DragPan.performed += instance.OnDragPan;
+            @DragPan.canceled += instance.OnDragPan;
+            @Zoom.started += instance.OnZoom;
+            @Zoom.performed += instance.OnZoom;
+            @Zoom.canceled += instance.OnZoom;
+            @Point.started += instance.OnPoint;
+            @Point.performed += instance.OnPoint;
+            @Point.canceled += instance.OnPoint;
+            @Select.started += instance.OnSelect;
+            @Select.performed += instance.OnSelect;
+            @Select.canceled += instance.OnSelect;
+            @Deselect.started += instance.OnDeselect;
+            @Deselect.performed += instance.OnDeselect;
+            @Deselect.canceled += instance.OnDeselect;
+            @FocusHome.started += instance.OnFocusHome;
+            @FocusHome.performed += instance.OnFocusHome;
+            @FocusHome.canceled += instance.OnFocusHome;
+            @TogglePause.started += instance.OnTogglePause;
+            @TogglePause.performed += instance.OnTogglePause;
+            @TogglePause.canceled += instance.OnTogglePause;
+            @Speed1.started += instance.OnSpeed1;
+            @Speed1.performed += instance.OnSpeed1;
+            @Speed1.canceled += instance.OnSpeed1;
+            @Speed2.started += instance.OnSpeed2;
+            @Speed2.performed += instance.OnSpeed2;
+            @Speed2.canceled += instance.OnSpeed2;
+            @Speed3.started += instance.OnSpeed3;
+            @Speed3.performed += instance.OnSpeed3;
+            @Speed3.canceled += instance.OnSpeed3;
+            @ToggleMap.started += instance.OnToggleMap;
+            @ToggleMap.performed += instance.OnToggleMap;
+            @ToggleMap.canceled += instance.OnToggleMap;
+        }
+
+        /// <summary>
+        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+        /// </remarks>
+        /// <seealso cref="RTSActions" />
+        private void UnregisterCallbacks(IRTSActions instance)
+        {
+            @Pan.started -= instance.OnPan;
+            @Pan.performed -= instance.OnPan;
+            @Pan.canceled -= instance.OnPan;
+            @PanBoost.started -= instance.OnPanBoost;
+            @PanBoost.performed -= instance.OnPanBoost;
+            @PanBoost.canceled -= instance.OnPanBoost;
+            @DragPan.started -= instance.OnDragPan;
+            @DragPan.performed -= instance.OnDragPan;
+            @DragPan.canceled -= instance.OnDragPan;
+            @Zoom.started -= instance.OnZoom;
+            @Zoom.performed -= instance.OnZoom;
+            @Zoom.canceled -= instance.OnZoom;
+            @Point.started -= instance.OnPoint;
+            @Point.performed -= instance.OnPoint;
+            @Point.canceled -= instance.OnPoint;
+            @Select.started -= instance.OnSelect;
+            @Select.performed -= instance.OnSelect;
+            @Select.canceled -= instance.OnSelect;
+            @Deselect.started -= instance.OnDeselect;
+            @Deselect.performed -= instance.OnDeselect;
+            @Deselect.canceled -= instance.OnDeselect;
+            @FocusHome.started -= instance.OnFocusHome;
+            @FocusHome.performed -= instance.OnFocusHome;
+            @FocusHome.canceled -= instance.OnFocusHome;
+            @TogglePause.started -= instance.OnTogglePause;
+            @TogglePause.performed -= instance.OnTogglePause;
+            @TogglePause.canceled -= instance.OnTogglePause;
+            @Speed1.started -= instance.OnSpeed1;
+            @Speed1.performed -= instance.OnSpeed1;
+            @Speed1.canceled -= instance.OnSpeed1;
+            @Speed2.started -= instance.OnSpeed2;
+            @Speed2.performed -= instance.OnSpeed2;
+            @Speed2.canceled -= instance.OnSpeed2;
+            @Speed3.started -= instance.OnSpeed3;
+            @Speed3.performed -= instance.OnSpeed3;
+            @Speed3.canceled -= instance.OnSpeed3;
+            @ToggleMap.started -= instance.OnToggleMap;
+            @ToggleMap.performed -= instance.OnToggleMap;
+            @ToggleMap.canceled -= instance.OnToggleMap;
+        }
+
+        /// <summary>
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="RTSActions.UnregisterCallbacks(IRTSActions)" />.
+        /// </summary>
+        /// <seealso cref="RTSActions.UnregisterCallbacks(IRTSActions)" />
+        public void RemoveCallbacks(IRTSActions instance)
+        {
+            if (m_Wrapper.m_RTSActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        /// <summary>
+        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+        /// </remarks>
+        /// <seealso cref="RTSActions.AddCallbacks(IRTSActions)" />
+        /// <seealso cref="RTSActions.RemoveCallbacks(IRTSActions)" />
+        /// <seealso cref="RTSActions.UnregisterCallbacks(IRTSActions)" />
+        public void SetCallbacks(IRTSActions instance)
+        {
+            foreach (var item in m_Wrapper.m_RTSActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_RTSActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    /// <summary>
+    /// Provides a new <see cref="RTSActions" /> instance referencing this action map.
+    /// </summary>
+    public RTSActions @RTS => new RTSActions(this);
+
+    // Ship
+    private readonly InputActionMap m_Ship;
+    private List<IShipActions> m_ShipActionsCallbackInterfaces = new List<IShipActions>();
+    private readonly InputAction m_Ship_ToggleShield;
+    /// <summary>
+    /// Provides access to input actions defined in input action map "Ship".
+    /// </summary>
+    public struct ShipActions
+    {
+        private @InputSystem_Actions m_Wrapper;
+
+        /// <summary>
+        /// Construct a new instance of the input action map wrapper class.
+        /// </summary>
+        public ShipActions(@InputSystem_Actions wrapper) { m_Wrapper = wrapper; }
+        /// <summary>
+        /// Provides access to the underlying input action "Ship/ToggleShield".
+        /// </summary>
+        public InputAction @ToggleShield => m_Wrapper.m_Ship_ToggleShield;
+        /// <summary>
+        /// Provides access to the underlying input action map instance.
+        /// </summary>
+        public InputActionMap Get() { return m_Wrapper.m_Ship; }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+        public void Enable() { Get().Enable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+        public void Disable() { Get().Disable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+        public bool enabled => Get().enabled;
+        /// <summary>
+        /// Implicitly converts an <see ref="ShipActions" /> to an <see ref="InputActionMap" /> instance.
+        /// </summary>
+        public static implicit operator InputActionMap(ShipActions set) { return set.Get(); }
+        /// <summary>
+        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <param name="instance">Callback instance.</param>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+        /// </remarks>
+        /// <seealso cref="ShipActions" />
+        public void AddCallbacks(IShipActions instance)
+        {
+            if (instance == null || m_Wrapper.m_ShipActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_ShipActionsCallbackInterfaces.Add(instance);
+            @ToggleShield.started += instance.OnToggleShield;
+            @ToggleShield.performed += instance.OnToggleShield;
+            @ToggleShield.canceled += instance.OnToggleShield;
+        }
+
+        /// <summary>
+        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+        /// </remarks>
+        /// <seealso cref="ShipActions" />
+        private void UnregisterCallbacks(IShipActions instance)
+        {
+            @ToggleShield.started -= instance.OnToggleShield;
+            @ToggleShield.performed -= instance.OnToggleShield;
+            @ToggleShield.canceled -= instance.OnToggleShield;
+        }
+
+        /// <summary>
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="ShipActions.UnregisterCallbacks(IShipActions)" />.
+        /// </summary>
+        /// <seealso cref="ShipActions.UnregisterCallbacks(IShipActions)" />
+        public void RemoveCallbacks(IShipActions instance)
+        {
+            if (m_Wrapper.m_ShipActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        /// <summary>
+        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+        /// </remarks>
+        /// <seealso cref="ShipActions.AddCallbacks(IShipActions)" />
+        /// <seealso cref="ShipActions.RemoveCallbacks(IShipActions)" />
+        /// <seealso cref="ShipActions.UnregisterCallbacks(IShipActions)" />
+        public void SetCallbacks(IShipActions instance)
+        {
+            foreach (var item in m_Wrapper.m_ShipActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_ShipActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    /// <summary>
+    /// Provides a new <see cref="ShipActions" /> instance referencing this action map.
+    /// </summary>
+    public ShipActions @Ship => new ShipActions(this);
+
+    // DebugTools
+    private readonly InputActionMap m_DebugTools;
+    private List<IDebugToolsActions> m_DebugToolsActionsCallbackInterfaces = new List<IDebugToolsActions>();
+    private readonly InputAction m_DebugTools_RandomSystem;
+    private readonly InputAction m_DebugTools_NewGalaxy;
+    private readonly InputAction m_DebugTools_TestHitCenter;
+    private readonly InputAction m_DebugTools_TestHitPointer;
+    /// <summary>
+    /// Provides access to input actions defined in input action map "DebugTools".
+    /// </summary>
+    public struct DebugToolsActions
+    {
+        private @InputSystem_Actions m_Wrapper;
+
+        /// <summary>
+        /// Construct a new instance of the input action map wrapper class.
+        /// </summary>
+        public DebugToolsActions(@InputSystem_Actions wrapper) { m_Wrapper = wrapper; }
+        /// <summary>
+        /// Provides access to the underlying input action "DebugTools/RandomSystem".
+        /// </summary>
+        public InputAction @RandomSystem => m_Wrapper.m_DebugTools_RandomSystem;
+        /// <summary>
+        /// Provides access to the underlying input action "DebugTools/NewGalaxy".
+        /// </summary>
+        public InputAction @NewGalaxy => m_Wrapper.m_DebugTools_NewGalaxy;
+        /// <summary>
+        /// Provides access to the underlying input action "DebugTools/TestHitCenter".
+        /// </summary>
+        public InputAction @TestHitCenter => m_Wrapper.m_DebugTools_TestHitCenter;
+        /// <summary>
+        /// Provides access to the underlying input action "DebugTools/TestHitPointer".
+        /// </summary>
+        public InputAction @TestHitPointer => m_Wrapper.m_DebugTools_TestHitPointer;
+        /// <summary>
+        /// Provides access to the underlying input action map instance.
+        /// </summary>
+        public InputActionMap Get() { return m_Wrapper.m_DebugTools; }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Enable()" />
+        public void Enable() { Get().Enable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.Disable()" />
+        public void Disable() { Get().Disable(); }
+        /// <inheritdoc cref="UnityEngine.InputSystem.InputActionMap.enabled" />
+        public bool enabled => Get().enabled;
+        /// <summary>
+        /// Implicitly converts an <see ref="DebugToolsActions" /> to an <see ref="InputActionMap" /> instance.
+        /// </summary>
+        public static implicit operator InputActionMap(DebugToolsActions set) { return set.Get(); }
+        /// <summary>
+        /// Adds <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <param name="instance">Callback instance.</param>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c> or <paramref name="instance"/> have already been added this method does nothing.
+        /// </remarks>
+        /// <seealso cref="DebugToolsActions" />
+        public void AddCallbacks(IDebugToolsActions instance)
+        {
+            if (instance == null || m_Wrapper.m_DebugToolsActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_DebugToolsActionsCallbackInterfaces.Add(instance);
+            @RandomSystem.started += instance.OnRandomSystem;
+            @RandomSystem.performed += instance.OnRandomSystem;
+            @RandomSystem.canceled += instance.OnRandomSystem;
+            @NewGalaxy.started += instance.OnNewGalaxy;
+            @NewGalaxy.performed += instance.OnNewGalaxy;
+            @NewGalaxy.canceled += instance.OnNewGalaxy;
+            @TestHitCenter.started += instance.OnTestHitCenter;
+            @TestHitCenter.performed += instance.OnTestHitCenter;
+            @TestHitCenter.canceled += instance.OnTestHitCenter;
+            @TestHitPointer.started += instance.OnTestHitPointer;
+            @TestHitPointer.performed += instance.OnTestHitPointer;
+            @TestHitPointer.canceled += instance.OnTestHitPointer;
+        }
+
+        /// <summary>
+        /// Removes <see cref="InputAction.started"/>, <see cref="InputAction.performed"/> and <see cref="InputAction.canceled"/> callbacks provided via <param cref="instance" /> on all input actions contained in this map.
+        /// </summary>
+        /// <remarks>
+        /// Calling this method when <paramref name="instance" /> have not previously been registered has no side-effects.
+        /// </remarks>
+        /// <seealso cref="DebugToolsActions" />
+        private void UnregisterCallbacks(IDebugToolsActions instance)
+        {
+            @RandomSystem.started -= instance.OnRandomSystem;
+            @RandomSystem.performed -= instance.OnRandomSystem;
+            @RandomSystem.canceled -= instance.OnRandomSystem;
+            @NewGalaxy.started -= instance.OnNewGalaxy;
+            @NewGalaxy.performed -= instance.OnNewGalaxy;
+            @NewGalaxy.canceled -= instance.OnNewGalaxy;
+            @TestHitCenter.started -= instance.OnTestHitCenter;
+            @TestHitCenter.performed -= instance.OnTestHitCenter;
+            @TestHitCenter.canceled -= instance.OnTestHitCenter;
+            @TestHitPointer.started -= instance.OnTestHitPointer;
+            @TestHitPointer.performed -= instance.OnTestHitPointer;
+            @TestHitPointer.canceled -= instance.OnTestHitPointer;
+        }
+
+        /// <summary>
+        /// Unregisters <param cref="instance" /> and unregisters all input action callbacks via <see cref="DebugToolsActions.UnregisterCallbacks(IDebugToolsActions)" />.
+        /// </summary>
+        /// <seealso cref="DebugToolsActions.UnregisterCallbacks(IDebugToolsActions)" />
+        public void RemoveCallbacks(IDebugToolsActions instance)
+        {
+            if (m_Wrapper.m_DebugToolsActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        /// <summary>
+        /// Replaces all existing callback instances and previously registered input action callbacks associated with them with callbacks provided via <param cref="instance" />.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="instance" /> is <c>null</c>, calling this method will only unregister all existing callbacks but not register any new callbacks.
+        /// </remarks>
+        /// <seealso cref="DebugToolsActions.AddCallbacks(IDebugToolsActions)" />
+        /// <seealso cref="DebugToolsActions.RemoveCallbacks(IDebugToolsActions)" />
+        /// <seealso cref="DebugToolsActions.UnregisterCallbacks(IDebugToolsActions)" />
+        public void SetCallbacks(IDebugToolsActions instance)
+        {
+            foreach (var item in m_Wrapper.m_DebugToolsActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_DebugToolsActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    /// <summary>
+    /// Provides a new <see cref="DebugToolsActions" /> instance referencing this action map.
+    /// </summary>
+    public DebugToolsActions @DebugTools => new DebugToolsActions(this);
     private int m_KeyboardMouseSchemeIndex = -1;
     /// <summary>
     /// Provides access to the input control scheme.
@@ -1834,5 +2797,155 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnTrackedDeviceOrientation(InputAction.CallbackContext context);
+    }
+    /// <summary>
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "RTS" which allows adding and removing callbacks.
+    /// </summary>
+    /// <seealso cref="RTSActions.AddCallbacks(IRTSActions)" />
+    /// <seealso cref="RTSActions.RemoveCallbacks(IRTSActions)" />
+    public interface IRTSActions
+    {
+        /// <summary>
+        /// Method invoked when associated input action "Pan" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPan(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "PanBoost" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPanBoost(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "DragPan" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnDragPan(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Zoom" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnZoom(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Point" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPoint(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Select" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSelect(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Deselect" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnDeselect(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "FocusHome" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnFocusHome(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "TogglePause" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnTogglePause(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Speed1" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSpeed1(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Speed2" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSpeed2(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Speed3" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSpeed3(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "ToggleMap" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnToggleMap(InputAction.CallbackContext context);
+    }
+    /// <summary>
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Ship" which allows adding and removing callbacks.
+    /// </summary>
+    /// <seealso cref="ShipActions.AddCallbacks(IShipActions)" />
+    /// <seealso cref="ShipActions.RemoveCallbacks(IShipActions)" />
+    public interface IShipActions
+    {
+        /// <summary>
+        /// Method invoked when associated input action "ToggleShield" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnToggleShield(InputAction.CallbackContext context);
+    }
+    /// <summary>
+    /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "DebugTools" which allows adding and removing callbacks.
+    /// </summary>
+    /// <seealso cref="DebugToolsActions.AddCallbacks(IDebugToolsActions)" />
+    /// <seealso cref="DebugToolsActions.RemoveCallbacks(IDebugToolsActions)" />
+    public interface IDebugToolsActions
+    {
+        /// <summary>
+        /// Method invoked when associated input action "RandomSystem" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnRandomSystem(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "NewGalaxy" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnNewGalaxy(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "TestHitCenter" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnTestHitCenter(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "TestHitPointer" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnTestHitPointer(InputAction.CallbackContext context);
     }
 }
