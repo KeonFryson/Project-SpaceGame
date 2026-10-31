@@ -1,0 +1,139 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+/// <summary>
+/// The persistent game data that sits next to the (regenerated) solar systems:
+/// per-body state, empire-wide Research Data, and which planet is home.
+/// Created automatically by RTSBootstrap.
+/// </summary>
+public class GameState : MonoBehaviour
+{
+    public static GameState Instance { get; private set; }
+
+    public GalaxyData Galaxy { get; private set; }
+    public int HomeSystemId { get; private set; } = -1;
+    public int HomeBodyIndex { get; private set; } = -1;
+
+    /// <summary>Empire-wide pool. Research labs add to it in a later phase.</summary>
+    public float ResearchData;
+
+    public event Action NewGameStarted;
+
+    readonly Dictionary<long, BodyState> bodies = new Dictionary<long, BodyState>();
+    readonly List<BodyState> owned = new List<BodyState>();
+    public IReadOnlyList<BodyState> Owned => owned;
+
+    void Awake() => Instance = this;
+
+    // ------------------------------------------------------------------ new game
+
+    /// <summary>Resets everything for a freshly generated galaxy and returns the id of the home system to load.</summary>
+    public int InitNewGame(GalaxyData galaxy)
+    {
+        Galaxy = galaxy;
+        bodies.Clear();
+        owned.Clear();
+        ResearchData = 0f;
+
+        FindHome(galaxy, out int sys, out int body);
+        HomeSystemId = sys;
+        HomeBodyIndex = body;
+
+        var info = galaxy.systems[sys];
+        var sd = SolarSystemGenerator.Generate(info.seed, info.id, info.position);
+        var st = ResourceGenerator.Generate(sd, body);
+        ApplyHomeOverride(st);
+        bodies[BodyState.Key(sys, body)] = st;
+        owned.Add(st);
+
+        NewGameStarted?.Invoke();
+        return sys;
+    }
+
+    /// <summary>
+    /// Scans systems (starting from a seed-derived index) for a Terran/River planet around a
+    /// reasonable star. Falls back to any such system, then to the first planet of the first system.
+    /// </summary>
+    static void FindHome(GalaxyData g, out int sysId, out int bodyIndex)
+    {
+        int n = g.systems.Count;
+        int start = new System.Random(g.seed ^ 0x5EED).Next(n);
+        int fbSys = -1, fbBody = -1;
+
+        for (int k = 0; k < Mathf.Min(n, 250); k++)
+        {
+            int id = (start + k) % n;
+            var info = g.systems[id];
+            var sd = SolarSystemGenerator.Generate(info.seed, info.id, info.position);
+            int body = FindHomeBody(sd);
+            if (body < 0) continue;
+
+            bool goodStar = sd.starClass == StarClass.Orange || sd.starClass == StarClass.Yellow ||
+                            sd.starClass == StarClass.White;
+            if (goodStar) { sysId = id; bodyIndex = body; return; }
+            if (fbSys < 0) { fbSys = id; fbBody = body; }
+        }
+
+        if (fbSys >= 0) { sysId = fbSys; bodyIndex = fbBody; return; }
+
+        // last resort: first planet of the start system
+        var first = g.systems[start];
+        var fsd = SolarSystemGenerator.Generate(first.seed, first.id, first.position);
+        sysId = start;
+        bodyIndex = 0;
+        for (int i = 1; i < fsd.bodies.Count; i++)
+            if (!fsd.bodies[i].isBelt && fsd.bodies[i].parentIndex == 0) { bodyIndex = i; break; }
+    }
+
+    static int FindHomeBody(SolarSystemData sd)
+    {
+        int river = -1;
+        for (int i = 1; i < sd.bodies.Count; i++)
+        {
+            var b = sd.bodies[i];
+            if (b.parentIndex != 0) continue;           // planets only, not moons
+            if (b.type == PlanetType.Terran) return i;
+            if (b.type == PlanetType.RiverWorld && river < 0) river = i;
+        }
+        return river;
+    }
+
+    static void ApplyHomeOverride(BodyState st)
+    {
+        st.deposits[(int)ResourceType.Minerals] = st.depositsMax[(int)ResourceType.Minerals] = GameConfig.HomeMinerals;
+        st.deposits[(int)ResourceType.RareMetals] = st.depositsMax[(int)ResourceType.RareMetals] = GameConfig.HomeRareMetals;
+        st.deposits[(int)ResourceType.Gas] = st.depositsMax[(int)ResourceType.Gas] = 0f;
+        st.deposits[(int)ResourceType.ExoticMatter] = st.depositsMax[(int)ResourceType.ExoticMatter] = 0f;
+        st.anomalyName = null;
+        st.fertility = 1f;
+        st.owned = true;
+        st.isHome = true;
+        st.stock.capacity = GameConfig.HomeStockCapacity;
+        foreach (var (type, amount) in GameConfig.StartingStock) st.stock.Add(type, amount);
+    }
+
+    // ------------------------------------------------------------------ queries
+
+    /// <summary>State for a body, generated and cached on first access.</summary>
+    public BodyState GetBodyState(SolarSystemData sd, int bodyIndex)
+    {
+        long key = BodyState.Key(sd.id, bodyIndex);
+        if (!bodies.TryGetValue(key, out var st))
+        {
+            st = ResourceGenerator.Generate(sd, bodyIndex);
+            bodies[key] = st;
+        }
+        return st;
+    }
+
+    /// <summary>Sum of a physical resource across every owned location.</summary>
+    public float GetEmpireTotal(ResourceType t)
+    {
+        if (t == ResourceType.ResearchData) return ResearchData;
+        if (!ResourceInfo.IsPhysical(t)) return 0f;
+        float sum = 0f;
+        for (int i = 0; i < owned.Count; i++) sum += owned[i].stock.Get(t);
+        return sum;
+    }
+}

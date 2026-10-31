@@ -38,7 +38,9 @@ public class GalaxyManager : MonoBehaviour
         if (mapView != null) mapView.SystemClicked += LoadSystem;
 
         GenerateGalaxy(randomizeSeedOnStart ? Random.Range(1, int.MaxValue) : galaxySeed);
-        LoadSystem(new System.Random(Galaxy.seed).Next(Galaxy.systems.Count));
+        LoadSystem(GameState.Instance != null
+     ? GameState.Instance.InitNewGame(Galaxy)
+     : new System.Random(Galaxy.seed).Next(Galaxy.systems.Count));
     }
 
     public void GenerateGalaxy(int seed)
@@ -107,10 +109,7 @@ public class GalaxyManager : MonoBehaviour
         if (!debugKeys || Keyboard.current == null || Galaxy == null) return;
         if (Keyboard.current.rKey.wasPressedThisFrame) LoadRandomSystem();
         if (Keyboard.current.mKey.wasPressedThisFrame) ToggleMap();
-        if (Keyboard.current.gKey.wasPressedThisFrame)
-        {
-            GenerateGalaxy(Random.Range(1, int.MaxValue));
-            LoadRandomSystem();
-        }
+        if (GameState.Instance != null) LoadSystem(GameState.Instance.InitNewGame(Galaxy));
+        else LoadRandomSystem();
     }
 }
