@@ -24,25 +24,25 @@ public class ForceFieldController : MonoBehaviour
              "Leave off if projectiles already call Hit(), or you'll get double ripples.")]
     public bool autoRippleOnContact = false;
 
-    [Header("Break")]
-    public float breakDuration = 0.6f;
-    public float breakScalePunch = 0.15f;
+    [Header("Animation")]
+    public float animationDuration = 0.6f;
+    public float animationScalePunch = 0;
 
     SpriteRenderer sr;
     MaterialPropertyBlock mpb;
     readonly Vector4[] ripples = new Vector4[MaxRipples];
     int next;
 
-    float breakProgress;
+    float animationProgress;
     Vector3 baseScale = Vector3.one;
-    Coroutine breakRoutine;
+    Coroutine animationRoutine;
 
     static readonly int RipplesId = Shader.PropertyToID("_Ripples");
     static readonly int TimeId = Shader.PropertyToID("_FFTime");
     static readonly int TintId = Shader.PropertyToID("_Tint");
     static readonly int OutlineId = Shader.PropertyToID("_OutlineColor");
     static readonly int PatternId = Shader.PropertyToID("_PatternTex");
-    static readonly int BreakId = Shader.PropertyToID("_Break");
+    static readonly int AnimationId = Shader.PropertyToID("_Animation");
 
     void Awake()
     {
@@ -56,7 +56,7 @@ public class ForceFieldController : MonoBehaviour
         sr.GetPropertyBlock(mpb);
         mpb.SetFloat(TimeId, Time.time);
         mpb.SetVectorArray(RipplesId, ripples);
-        mpb.SetFloat(BreakId, breakProgress);
+        mpb.SetFloat(AnimationId, animationProgress);
         if (overrideColors)
         {
             mpb.SetColor(TintId, fieldColor);
@@ -75,25 +75,27 @@ public class ForceFieldController : MonoBehaviour
     }
 
     /// Plays the shield-destroyed animation, then calls onComplete.
-    public void Break(Action onComplete = null)
+    public void PlayAnimation(Action onComplete = null)
     {
-        if (breakRoutine != null) StopCoroutine(breakRoutine);
-        breakRoutine = StartCoroutine(BreakRoutine(onComplete));
+        
+        animationProgress = 0f;
+        if (animationRoutine != null) StopCoroutine(animationRoutine);
+        animationRoutine = StartCoroutine(AnimationRoutine(onComplete));
     }
-
+ 
     /// Resets the shield to its normal look. Call when the shield comes back.
     public void Restore()
     {
-        if (breakRoutine != null) StopCoroutine(breakRoutine);
-        breakRoutine = null;
-        breakProgress = 0f;
+        if (animationRoutine != null) StopCoroutine(animationRoutine);
+        animationRoutine = null;
+        animationProgress = 0f;
         transform.localScale = baseScale;
         for (int i = 0; i < MaxRipples; i++) ripples[i] = Vector4.zero;
     }
 
-    IEnumerator BreakRoutine(Action onComplete)
+    IEnumerator AnimationRoutine(Action onComplete)
     {
-
+        Debug.Log("ForceFieldController: AnimationRoutine started");
         // Burst of ripples around the edge
         Vector3 ext = sr.sprite != null ? sr.sprite.bounds.extents : Vector3.one * 0.5f;
         float radius = Mathf.Max(ext.x, ext.y) * 0.8f;
@@ -107,17 +109,22 @@ public class ForceFieldController : MonoBehaviour
         float t = 0f;
         while (t < 1f)
         {
-            t += Time.deltaTime / Mathf.Max(breakDuration, 0.01f);
-            breakProgress = Mathf.Clamp01(t);
-            transform.localScale = baseScale * (1f + breakScalePunch * Mathf.Sin(breakProgress * Mathf.PI));
+          
+            t += Time.deltaTime / Mathf.Max(animationDuration, 0.01f);
+            animationProgress = Mathf.Clamp01(t);
+            Debug.Log($"ForceFieldController: AnimationRoutine progress {animationProgress}");
+            transform.localScale = baseScale * (1f + animationScalePunch * Mathf.Sin(animationProgress * Mathf.PI));
             yield return null;
+           
         }
-
-        breakProgress = 1f;
+        Debug.Log("ForceFieldController: AnimationRoutine progress completed");
         transform.localScale = baseScale;
-        breakRoutine = null;
+        animationRoutine = null;
+        Debug.Log("ForceFieldController: AnimationRoutine completed");
         onComplete?.Invoke();
     }
+
+    
 
     void OnCollisionEnter2D(Collision2D c)
     {

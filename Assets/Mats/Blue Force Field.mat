@@ -45,8 +45,9 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _Animation: 0
     - _BaseAlpha: 0.118
-    - _Break: 0
+    - _Break: 1
     - _EnableExternalAlpha: 0
     - _OutlineIntensity: 0.199
     - _OutlineWidth: 0.58

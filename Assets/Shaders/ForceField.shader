@@ -22,8 +22,8 @@ Shader "Custom/Sprite ForceField"
         _RippleDuration ("Ripple Duration (sec)", Float) = 1
         _RippleDistort ("Ripple Distortion", Float) = 0.15
 
-        [Header(Break)]
-        _Break ("Break Progress", Range(0, 1)) = 0
+        [Header(Animation)]
+        _Animation ("Animation Progress", Range(0, 1)) = 0
     }
 
     SubShader
@@ -59,7 +59,7 @@ Shader "Custom/Sprite ForceField"
             float4 _PatternScroll;
             float _OutlineWidth, _OutlineIntensity;
             float _RippleSpeed, _RippleWidth, _RippleDuration, _RippleDistort;
-            float _Break;
+            float _Animation;
 
             // Set from ForceFieldController: xy = local hit pos, z = start time, w = strength (0 = inactive)
             float4 _Ripples[8];
@@ -157,12 +157,12 @@ Shader "Custom/Sprite ForceField"
                 float rip = ripple * a;
 
                 // ---------- Break: noise dissolve + burn edge + flash ----------
-                float breaking = step(0.001, _Break);
+                float breaking = step(0.001, _Animation);
                 float noise = valueNoise(i.local * 6.0) * 0.7 + valueNoise(i.local * 14.0) * 0.3;
-                float dissolve = lerp(1.0, smoothstep(_Break - 0.08, _Break, noise), breaking);
-                float burn = saturate(1 - abs(noise - _Break) / 0.08) * breaking * a;
-                float flash = exp(-_Break * 6.0) * breaking * a;
-                float fadeOut = 1 - _Break;
+                float dissolve = lerp(1.0, smoothstep(_Animation - 0.08, _Animation, noise), breaking);
+                float burn = saturate(1 - abs(noise - _Animation) / 0.08) * breaking * a;
+                float flash = exp(-_Animation * 6.0) * breaking * a;
+                float fadeOut = 1 - _Animation;
 
                 float3 rgb = _Tint.rgb * fill * dissolve
                            + _OutlineColor.rgb * edge * _OutlineIntensity * fadeOut

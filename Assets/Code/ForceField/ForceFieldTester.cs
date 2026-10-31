@@ -18,8 +18,7 @@ public class ForceFieldTester : MonoBehaviour
     {
         if (target == null) { Debug.LogWarning("Tester: no ForceFieldController found"); return; }
 
-        // SpaceShip turns the shield object off every frame unless this is true
-        if (ship != null) ship.isShieldActive = true;
+         
 
         // Space = ripple at the shield center
         if (Keyboard.current.spaceKey.wasPressedThisFrame)
