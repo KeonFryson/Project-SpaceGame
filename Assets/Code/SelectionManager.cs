@@ -200,7 +200,13 @@ public class SelectionManager : MonoBehaviour
 
     void LateUpdate()
     {
-        if (!hasSelection || Selected == null) return;
+        // No selection ring behind the title screen / main menu.
+        bool inMenu = GameFlow.Mode == GameMode.Title || GameFlow.Mode == GameMode.MainMenu;
+        bool show = hasSelection && Selected != null && !inMenu;
+
+        if (ring.gameObject.activeSelf != show) ring.gameObject.SetActive(show);
+        if (!show) return;
+
         ring.transform.position = Selected.transform.position;
         if (cam == null) cam = Camera.main;
         float ortho = cam != null ? cam.orthographicSize : 10f;

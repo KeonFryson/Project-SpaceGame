@@ -24,8 +24,8 @@ public class GalaxyManager : MonoBehaviour
     [Tooltip("Optional. Needs useXYPlane = true for a 2D game.")]
     [SerializeField] TopDownCameraController cameraController;
     [Header("Menu backdrop")]
-    [Tooltip("1.1 = whole system just fits. Lower = zoomed in more (0.5 = half the system visible).")]
-    [SerializeField, Range(0.1f, 1.5f)] float overviewZoom = 0.6f;
+    [Tooltip("1.0 = last orbit ring touches the screen edge. 1.1 = small margin. Lower = zoomed in more.")]
+    [SerializeField, Range(0f, 1.5f)] float overviewZoom = 1.1f;
     [Header("Debug")]
     [SerializeField] bool debugKeys = true;
 
@@ -79,7 +79,7 @@ public class GalaxyManager : MonoBehaviour
 
         // Ortho size is half the screen height, so on narrow (non-wide) screens grow it to fit the width too.
         float aspect = Camera.main != null ? Camera.main.aspect : 1.78f;
-        float size = CurrentSystem.radius * overviewZoom / Mathf.Min(1f, aspect);
+        float size = OuterOrbit(CurrentSystem) * overviewZoom;
 
         cameraController.SetmaxOrthoSize(size);
         cameraController.FocusOn(spawner.transform.position);
@@ -247,12 +247,27 @@ public class GalaxyManager : MonoBehaviour
         if (kb.rKey.wasPressedThisFrame) LoadRandomSystem();
         if (kb.gKey.wasPressedThisFrame) StartNewGame();   // G = brand new game
     }
+    /// <summary>Distance from the star to the outermost thing orbiting it (planet, belt rock or moon).</summary>
+    private static float OuterOrbit(SolarSystemData sd)
+    {
+        float r = 0f;
+        foreach (var b in sd.bodies)
+        {
+            if (b.parentIndex < 0) continue;   // the star itself
 
+            float dist = b.orbitRadius + b.diameter * 0.5f;
+            if (b.parentIndex > 0)             // moon: add its planet's orbit so it isn't clipped
+                dist += sd.bodies[b.parentIndex].orbitRadius;
+
+            r = Mathf.Max(r, dist);
+        }
+        return r;
+    }
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
-        float aspect = Camera.main != null ? Camera.main.aspect : 2f;
-        float size = CurrentSystem.radius * overviewZoom / Mathf.Min(1f, aspect);
+        float aspect = Camera.main != null ? Camera.main.aspect : 1.78f;
+        float size = OuterOrbit(CurrentSystem) * overviewZoom;
         if (CurrentSystem != null) Gizmos.DrawWireSphere(Vector3.zero, size);
     }
 }
