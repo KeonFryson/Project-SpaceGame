@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -8,7 +9,8 @@ using UnityEngine.UI;
 ///  - top bar: system name, the 8 resources (empire totals), game clock + speed buttons
 ///  - info panel (bottom-left): whatever is selected
 ///  - controls hint (bottom-right)
-/// Uses legacy uGUI Text so there is no TextMeshPro import step.
+/// Uses TextMeshPro (needs TMP Essential Resources imported once:
+/// Window > TextMeshPro > Import TMP Essential Resources).
 /// </summary>
 public class RTSUI : MonoBehaviour
 {
@@ -16,9 +18,8 @@ public class RTSUI : MonoBehaviour
     static readonly Color BtnIdle = new Color(0.16f, 0.20f, 0.27f, 1f);
     static readonly Color BtnActive = new Color(0.25f, 0.55f, 0.95f, 1f);
 
-    Font font;
-    Text systemLabel, clockLabel, infoTitle, infoBody;
-    readonly Text[] resLabels = new Text[ResourceInfo.Count];
+    TMP_Text systemLabel, clockLabel, infoTitle, infoBody;
+    readonly TMP_Text[] resLabels = new TMP_Text[ResourceInfo.Count];
     readonly Image[] speedImgs = new Image[4];
     GameObject infoPanel;
     GalaxyManager galaxy;
@@ -26,7 +27,6 @@ public class RTSUI : MonoBehaviour
 
     void Awake()
     {
-        font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
         EnsureEventSystem();
         BuildCanvas();
     }
@@ -129,19 +129,19 @@ public class RTSUI : MonoBehaviour
         layout.childForceExpandWidth = false;
         layout.childForceExpandHeight = true;
 
-        systemLabel = NewText(bar, "System", 18, TextAnchor.MiddleLeft, FontStyle.Bold);
+        systemLabel = NewText(bar, "System", 18, TextAlignmentOptions.MidlineLeft, FontStyles.Bold);
         SetLayout(systemLabel.gameObject, 230f);
 
         for (int i = 0; i < ResourceInfo.Count; i++)
         {
-            resLabels[i] = NewText(bar, "Res" + i, 16, TextAnchor.MiddleLeft);
+            resLabels[i] = NewText(bar, "Res" + i, 16, TextAlignmentOptions.MidlineLeft);
             SetLayout(resLabels[i].gameObject, i == (int)ResourceType.ResearchData ? 170f : 140f);
         }
 
         var spacer = NewRect("Spacer", bar);
         SetLayout(spacer.gameObject, 0f, 1f);
 
-        clockLabel = NewText(bar, "Clock", 16, TextAnchor.MiddleRight);
+        clockLabel = NewText(bar, "Clock", 16, TextAlignmentOptions.MidlineRight);
         SetLayout(clockLabel.gameObject, 130f);
 
         string[] labels = { "II", "1x", "2x", "4x" };
@@ -156,7 +156,7 @@ public class RTSUI : MonoBehaviour
             btn.onClick.AddListener(() => { if (GameClock.Instance != null) GameClock.Instance.SetSpeed(index); });
             SetLayout(b.gameObject, 44f);
 
-            var t = NewText(b, "Label", 15, TextAnchor.MiddleCenter, FontStyle.Bold);
+            var t = NewText(b, "Label", 15, TextAlignmentOptions.Midline, FontStyles.Bold);
             Stretch(t.rectTransform, 0f, 0f, 0f, 0f);
             t.text = labels[i];
         }
@@ -171,7 +171,7 @@ public class RTSUI : MonoBehaviour
         rt.gameObject.AddComponent<Image>().color = PanelColor;
         infoPanel = rt.gameObject;
 
-        infoTitle = NewText(rt, "Title", 22, TextAnchor.MiddleLeft, FontStyle.Bold);
+        infoTitle = NewText(rt, "Title", 22, TextAlignmentOptions.MidlineLeft, FontStyles.Bold);
         var tr = infoTitle.rectTransform;
         tr.anchorMin = new Vector2(0f, 1f);
         tr.anchorMax = new Vector2(1f, 1f);
@@ -179,9 +179,9 @@ public class RTSUI : MonoBehaviour
         tr.sizeDelta = new Vector2(-24f, 34f);
         tr.anchoredPosition = new Vector2(0f, -8f);
 
-        infoBody = NewText(rt, "Body", 14, TextAnchor.UpperLeft);
-        infoBody.horizontalOverflow = HorizontalWrapMode.Wrap;
-        infoBody.verticalOverflow = VerticalWrapMode.Truncate;
+        infoBody = NewText(rt, "Body", 14, TextAlignmentOptions.TopLeft);
+        infoBody.textWrappingMode = TextWrappingModes.Normal;
+        infoBody.overflowMode = TextOverflowModes.Truncate;
         Stretch(infoBody.rectTransform, 12f, 12f, 12f, 46f);
 
         infoPanel.SetActive(false);
@@ -189,7 +189,7 @@ public class RTSUI : MonoBehaviour
 
     void BuildHint(Transform parent)
     {
-        var t = NewText(parent, "Hint", 13, TextAnchor.LowerRight);
+        var t = NewText(parent, "Hint", 13, TextAlignmentOptions.BottomRight);
         t.color = new Color(1f, 1f, 1f, 0.45f);
         var rt = t.rectTransform;
         rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(1f, 0f);
@@ -207,19 +207,19 @@ public class RTSUI : MonoBehaviour
         return (RectTransform)go.transform;
     }
 
-    Text NewText(Transform parent, string name, int size, TextAnchor anchor, FontStyle style = FontStyle.Normal)
+    TMP_Text NewText(Transform parent, string name, float size, TextAlignmentOptions align,
+                     FontStyles style = FontStyles.Normal)
     {
         var rt = NewRect(name, parent);
-        var t = rt.gameObject.AddComponent<Text>();
-        t.font = font;
+        var t = rt.gameObject.AddComponent<TextMeshProUGUI>();   // uses the default TMP font asset
         t.fontSize = size;
-        t.alignment = anchor;
+        t.alignment = align;
         t.fontStyle = style;
         t.color = Color.white;
-        t.supportRichText = true;
+        t.richText = true;
         t.raycastTarget = false;
-        t.horizontalOverflow = HorizontalWrapMode.Overflow;
-        t.verticalOverflow = VerticalWrapMode.Overflow;
+        t.textWrappingMode = TextWrappingModes.NoWrap;
+        t.overflowMode = TextOverflowModes.Overflow;
         return t;
     }
 

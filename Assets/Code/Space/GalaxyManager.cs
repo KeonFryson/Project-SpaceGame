@@ -76,14 +76,16 @@ public class GalaxyManager : MonoBehaviour
         {
             mapView.Hide();
             spawner.SetVisible(true);
-            cameraController.SetmaxOrthoSize(Galaxy.radius * 1.1f);
+            if (cameraController != null && CurrentSystem != null)
+                cameraController.SetmaxOrthoSize(CurrentSystem.radius * 1.1f);
             FrameSystem();
         }
         else
         {
             spawner.SetVisible(false);
             mapView.Show(Galaxy, CurrentSystem != null ? CurrentSystem.id : -1);
-            cameraController.SetmaxOrthoSize(CurrentSystem.radius * 1.1f);
+            if (cameraController != null)
+                cameraController.SetmaxOrthoSize(Galaxy.radius * 1.1f);
             FrameGalaxy();
         }
     }
@@ -106,10 +108,19 @@ public class GalaxyManager : MonoBehaviour
 
     void Update()
     {
-        if (!debugKeys || Keyboard.current == null || Galaxy == null) return;
-        if (Keyboard.current.rKey.wasPressedThisFrame) LoadRandomSystem();
         if (Keyboard.current.mKey.wasPressedThisFrame) ToggleMap();
-        if (GameState.Instance != null) LoadSystem(GameState.Instance.InitNewGame(Galaxy));
-        else LoadRandomSystem();
+
+
+        if (!debugKeys || Keyboard.current == null || Galaxy == null) return;
+
+        if (Keyboard.current.rKey.wasPressedThisFrame) LoadRandomSystem();
+        
+
+        if (Keyboard.current.gKey.wasPressedThisFrame)   // G = brand new galaxy
+        {
+            GenerateGalaxy(Random.Range(1, int.MaxValue));
+            if (GameState.Instance != null) LoadSystem(GameState.Instance.InitNewGame(Galaxy));
+            else LoadRandomSystem();
+        }
     }
 }
