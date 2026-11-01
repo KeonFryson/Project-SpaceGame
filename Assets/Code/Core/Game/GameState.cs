@@ -106,7 +106,7 @@ public class GameState : MonoBehaviour
     {
         st.deposits[(int)ResourceType.Minerals] = st.depositsMax[(int)ResourceType.Minerals] = GameConfig.HomeMinerals;
         st.deposits[(int)ResourceType.RareMetals] = st.depositsMax[(int)ResourceType.RareMetals] = GameConfig.HomeRareMetals;
-        st.deposits[(int)ResourceType.Gas] = st.depositsMax[(int)ResourceType.Gas] = 0f;
+        st.deposits[(int)ResourceType.Gas] = st.depositsMax[(int)ResourceType.Gas] = GameConfig.HomeGas;
         st.deposits[(int)ResourceType.ExoticMatter] = st.depositsMax[(int)ResourceType.ExoticMatter] = 0f;
         st.anomalyName = null;
         st.fertility = 1f;

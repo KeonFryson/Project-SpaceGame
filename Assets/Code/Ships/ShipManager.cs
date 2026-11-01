@@ -5,8 +5,9 @@ using UnityEngine.InputSystem;
 
 /// <summary>
 /// Owns the ship VIEWS. The ship DATA lives in GameState.Ships. Spawns the views for the loaded
-/// system, adds ships when a Shipyard finishes one, and turns right-click into orders for ALL
-/// selected ships (move to a point in a loose grid, or dock at a body). Created by RTSBootstrap.
+/// system, adds ships when a Shipyard finishes one, and turns right-click into orders for the
+/// whole selected group (move in formation, or dock at a body). Also handles "pick a route end"
+/// clicks for the ship panel. Created by RTSBootstrap.
 /// </summary>
 public class ShipManager : MonoBehaviour
 {
@@ -18,7 +19,15 @@ public class ShipManager : MonoBehaviour
     Camera cam;
     readonly List<Ship> ships = new List<Ship>();
 
+    int pickEndpoint = -1;   // -1 = not picking, 0 = picking route end A, 1 = picking B
+    bool endPick;
+
+    public IReadOnlyList<Ship> Ships => ships;
     public Vector3 Origin => spawner != null ? spawner.transform.position : Vector3.zero;
+    public SolarSystemData CurrentSystem => galaxy != null ? galaxy.CurrentSystem : null;
+
+    public bool IsPicking => pickEndpoint >= 0;
+    public int PickingEndpoint => pickEndpoint;
 
     void Awake()
     {
@@ -40,7 +49,7 @@ public class ShipManager : MonoBehaviour
         if (Instance == this) Instance = null;
     }
 
-    // ------------------------------------------------------------------ lookups used by Ship
+    // ------------------------------------------------------------------ lookups used by Ship / automation
 
     public CelestialBody FindBody(int index)
     {
@@ -52,14 +61,49 @@ public class ShipManager : MonoBehaviour
 
     public string BodyName(int index)
     {
-        var sd = galaxy != null ? galaxy.CurrentSystem : null;
+        var sd = CurrentSystem;
         return sd != null && index >= 0 && index < sd.bodies.Count ? sd.bodies[index].name : "?";
+    }
+
+    /// <summary>Economy state of a body in the loaded system (null if it doesn't exist).</summary>
+    public BodyState StateOf(int bodyIndex)
+    {
+        var sd = CurrentSystem;
+        var gs = GameState.Instance;
+        if (sd == null || gs == null || bodyIndex < 0 || bodyIndex >= sd.bodies.Count) return null;
+        return gs.GetBodyState(sd, bodyIndex);
+    }
+
+    // ------------------------------------------------------------------ route editing (used by ShipPanelUI)
+
+    public void BeginPick(int endpoint)
+    {
+        pickEndpoint = endpoint;
+        endPick = false;
+        ToastUI.Show("Click one of your planets for route end " + (endpoint == 0 ? "A" : "B") + "  (right-click cancels)");
+    }
+
+    public void CancelPick() => pickEndpoint = -1;
+
+    /// <summary>Copies the first selected ship's route setup to every other selected ship.</summary>
+    public void UnifyRoute()
+    {
+        var sel = SelectionManager.Instance;
+        if (sel == null || sel.SelectedShips.Count < 2) return;
+        var primary = sel.SelectedShips[0];
+        if (primary == null) return;
+        for (int i = 1; i < sel.SelectedShips.Count; i++)
+        {
+            var s = sel.SelectedShips[i];
+            if (s != null) s.data.CopyRouteFrom(primary.data);
+        }
     }
 
     // ------------------------------------------------------------------ spawning
 
     void OnSystemLoaded(SolarSystemData sd)
     {
+        pickEndpoint = -1;
         foreach (var s in ships) if (s != null) Destroy(s.gameObject);
         ships.Clear();
 
@@ -99,7 +143,7 @@ public class ShipManager : MonoBehaviour
             SpawnView(data);
     }
 
-    // ------------------------------------------------------------------ orders
+    // ------------------------------------------------------------------ input
 
     void Update()
     {
@@ -109,12 +153,80 @@ public class ShipManager : MonoBehaviour
             if (container.gameObject.activeSelf != visible) container.gameObject.SetActive(visible);
         }
 
-        if (GameFlow.Mode != GameMode.Playing || (galaxy != null && galaxy.MapOpen)) return;
+        if (GameFlow.Mode != GameMode.Playing || (galaxy != null && galaxy.MapOpen))
+        {
+            pickEndpoint = -1;
+            return;
+        }
 
         var mouse = Mouse.current;
-        if (mouse == null || !mouse.rightButton.wasPressedThisFrame) return;
+        if (mouse == null) return;
+
+        if (IsPicking) { HandlePick(mouse); return; }
+
+        if (!mouse.rightButton.wasPressedThisFrame) return;
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
+        IssueOrders(mouse);
+    }
+
+    // Picking ends in LateUpdate so SelectionManager (which skips clicks while IsPicking) still sees
+    // IsPicking == true this frame no matter which Update runs first.
+    void LateUpdate()
+    {
+        if (endPick)
+        {
+            pickEndpoint = -1;
+            endPick = false;
+        }
+    }
+
+    void HandlePick(Mouse mouse)
+    {
+        var sel = SelectionManager.Instance;
+        if (sel == null || sel.SelectedShips.Count == 0) { pickEndpoint = -1; return; }
+
+        if (mouse.rightButton.wasPressedThisFrame) { endPick = true; return; }
+        if (!mouse.leftButton.wasPressedThisFrame) return;
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
 
+        if (cam == null) cam = Camera.main;
+        if (cam == null) return;
+        Vector2 world = cam.ScreenToWorldPoint(mouse.position.ReadValue());
+
+        var body = PickBody(world);
+        if (body == null || body.data.type == PlanetType.Star)
+        {
+            ToastUI.Show("Pick one of your planets or moons");
+            return;
+        }
+        var st = StateOf(body.index);
+        if (st == null || !st.owned)
+        {
+            ToastUI.Show(body.data.name + " isn't yours yet. Claim it first.");
+            return;
+        }
+
+        var primary = sel.SelectedShips[0];
+        if (primary == null) { pickEndpoint = -1; return; }
+        primary.data.EnsureAuto();
+
+        int other = pickEndpoint == 0 ? primary.data.autoB : primary.data.autoA;
+        if (other == body.index)
+        {
+            ToastUI.Show("Route ends must be two different planets");
+            return;
+        }
+
+        if (pickEndpoint == 0) primary.data.autoA = body.index;
+        else primary.data.autoB = body.index;
+        UnifyRoute();
+
+        ToastUI.Show("Route end " + (pickEndpoint == 0 ? "A" : "B") + ": " + body.data.name);
+        endPick = true;
+    }
+
+    void IssueOrders(Mouse mouse)
+    {
         var sel = SelectionManager.Instance;
         if (sel == null || sel.SelectedShips.Count == 0) return;
 
@@ -122,32 +234,35 @@ public class ShipManager : MonoBehaviour
         if (cam == null) return;
         Vector2 world = cam.ScreenToWorldPoint(mouse.position.ReadValue());
 
-        var group = new List<Ship>(sel.SelectedShips.Count);
-        foreach (var s in sel.SelectedShips) if (s != null) group.Add(s);
-        if (group.Count == 0) return;
-
+        var group = new List<Ship>(sel.SelectedShips);
         var body = PickBody(world);
-        if (body != null)
+        if (body != null && body.data.type == PlanetType.Star)
         {
-            if (body.data.type == PlanetType.Star) { ToastUI.Show("Ships can't dock at a star"); return; }
-            foreach (var s in group) s.OrderDock(body);
+            ToastUI.Show("Ships can't dock at a star");
+            return;
         }
-        else
-        {
-            // spread the group into a loose grid around the click so ships don't stack
-            int n = group.Count;
-            int cols = Mathf.CeilToInt(Mathf.Sqrt(n));
-            int rows = Mathf.CeilToInt(n / (float)cols);
-            float spacing = Mathf.Max(1.5f, cam.orthographicSize * 0.05f);
 
-            for (int i = 0; i < n; i++)
-            {
-                Vector2 off = n == 1 ? Vector2.zero : new Vector2(
-                    (i % cols - (cols - 1) * 0.5f) * spacing,
-                    (i / cols - (rows - 1) * 0.5f) * spacing);
-                group[i].OrderMove(world + off);
-            }
+        bool hadRoute = false;
+        foreach (var s in group) if (s != null && s.data.autoOn) hadRoute = true;
+        if (hadRoute) ToastUI.Show("Manual order: route cancelled");
+
+        float spacing = Mathf.Max(1.2f, (cam.orthographic ? cam.orthographicSize : 10f) * 0.05f);
+        for (int i = 0; i < group.Count; i++)
+        {
+            var s = group[i];
+            if (s == null) continue;
+            if (body != null) s.OrderDock(body);
+            else s.OrderMove(world + Formation(i, group.Count, spacing));
         }
+    }
+
+    /// <summary>Sunflower spread around the click point so a group doesn't stack on one spot.</summary>
+    static Vector2 Formation(int index, int count, float spacing)
+    {
+        if (count <= 1) return Vector2.zero;
+        float r = spacing * Mathf.Sqrt(index);
+        float a = index * 2.39996f;
+        return new Vector2(Mathf.Cos(a), Mathf.Sin(a)) * r;
     }
 
     static CelestialBody PickBody(Vector2 world)

@@ -17,6 +17,7 @@ public static class GameConfig
     // ---- home planet
     public const float HomeMinerals = 20000f;
     public const float HomeRareMetals = 3000f;
+    public const float HomeGas = 2000f;
 
     public static readonly (ResourceType type, float amount)[] StartingStock =
     {
@@ -49,10 +50,10 @@ public static class GameConfig
         switch (t)
         {
             case PlanetType.Terran:
-            case PlanetType.RiverWorld: return new[] { 2, 0, 1, 0 };
-            case PlanetType.Desert: return new[] { 3, 0, 2, 1 };
+            case PlanetType.RiverWorld: return new[] { 2, 1, 1, 0 };
+            case PlanetType.Desert: return new[] { 3, 1, 2, 1 };
             case PlanetType.Ice: return new[] { 2, 1, 1, 1 };
-            case PlanetType.Lava: return new[] { 3, 0, 3, 1 };
+            case PlanetType.Lava: return new[] { 3, 3, 3, 1 };
             case PlanetType.Barren: return new[] { 2, 0, 1, 0 };
             case PlanetType.Asteroid: return new[] { 3, 0, 2, 0 };
             case PlanetType.GasGiant:

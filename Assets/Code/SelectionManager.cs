@@ -14,37 +14,45 @@ public interface ISelectable
 
 /// <summary>
 /// Left-click selects the smallest thing under the cursor (ISelectable first, then CelestialBody).
-/// Drag a box to select several ships, Shift adds to the selection (click or box).
-/// Click empty space or press Esc to deselect. H = jump to the home planet.
-/// Selected = the "primary" selection (first ship of a group); SelectedShips = the whole group.
+/// Ships can be multi-selected: Shift+click toggles a ship, and dragging a box selects every ship inside
+/// (hold Shift to add to the current selection). Click empty space or press Esc to deselect. H = home.
+/// Selected is the primary item (the first ship of a group); SelectedShips is the whole ship group.
+/// A highlight ring follows every selected ship.
 /// </summary>
 public class SelectionManager : MonoBehaviour
 {
     public static SelectionManager Instance { get; private set; }
 
     const float HomeZoom = 20f;
-    const float DragThreshold = 6f;     // pixels before a click becomes a box
-    const int RingPoints = 64;
+    const float DragThreshold = 8f;   // pixels before a click becomes a box drag
 
     public Component Selected { get; private set; }
-    public readonly List<Ship> SelectedShips = new List<Ship>();
+    public IReadOnlyList<Ship> SelectedShips => shipGroup;
     public event System.Action SelectionChanged;
+
+    sealed class RingView
+    {
+        public LineRenderer lr;
+        public float radius = -1f;
+    }
+
+    readonly List<Ship> shipGroup = new List<Ship>();
 
     GalaxyManager galaxy;
     SolarSystemSpawner spawner;
     TopDownCameraController camCtl;
     Camera cam;
 
-    LineRenderer ring;
-    readonly List<LineRenderer> extraRings = new List<LineRenderer>();
-    readonly Vector3[] ringBuf = new Vector3[RingPoints];
+    RingView mainRing;
+    readonly List<RingView> extraRings = new List<RingView>();
     Material ringMat;
     bool hasSelection;
     bool pendingHomeFocus;
 
-    // drag-box state
-    bool pressing, boxActive;
-    Vector2 dragStart;
+    // box select
+    bool wasDown, pressing, dragging;
+    Vector2 dragStart, dragNow;
+    Texture2D boxTex;
 
     void Awake()
     {
@@ -56,7 +64,7 @@ public class SelectionManager : MonoBehaviour
         // Subscribe in Awake: GalaxyManager.Start raises SystemLoaded during its own Start.
         if (galaxy != null) galaxy.SystemLoaded += OnSystemLoaded;
         if (GameState.Instance != null) GameState.Instance.NewGameStarted += OnNewGame;
-        BuildRing();
+        BuildRings();
     }
 
     void OnDestroy()
@@ -64,13 +72,14 @@ public class SelectionManager : MonoBehaviour
         if (galaxy != null) galaxy.SystemLoaded -= OnSystemLoaded;
         if (GameState.Instance != null) GameState.Instance.NewGameStarted -= OnNewGame;
         if (ringMat != null) Destroy(ringMat);
+        if (boxTex != null) Destroy(boxTex);
     }
 
     void OnNewGame() => pendingHomeFocus = true;
 
     void OnSystemLoaded(SolarSystemData sd)
     {
-        Select(null);   // old bodies / ships were destroyed
+        Select(null);   // old bodies and ships were destroyed
         var gs = GameState.Instance;
         if (pendingHomeFocus && gs != null && gs.HomeSystemId == sd.id)
         {
@@ -83,88 +92,90 @@ public class SelectionManager : MonoBehaviour
 
     void Update()
     {
-        PruneShips();
-        if (GameFlow.InputBlocked) { CancelDrag(); return; }               // title / menus / pause
-        if (GameFlow.Mode != GameMode.Playing) { CancelDrag(); Select(null); return; }   // only in RTS mode
+        PruneDestroyed();
+        if (GameFlow.InputBlocked) { CancelDrag(); return; }   // title / menus / pause
+        if (GameFlow.Mode != GameMode.Playing) { Select(null); return; }
 
         var rts = GameInput.Actions.RTS;
-        if (rts.Deselect.WasPressedThisFrame()) { CancelDrag(); Select(null); }
-        if (rts.ToggleMap.WasPressedThisFrame()) { CancelDrag(); Select(null); }
+        if (rts.Deselect.WasPressedThisFrame()) Select(null);
+        if (rts.ToggleMap.WasPressedThisFrame()) Select(null);
         if (rts.FocusHome.WasPressedThisFrame()) FocusHome();
 
-        HandlePointer(rts);
+        // the ship panel is waiting for a click on a planet: leave that click alone
+        var sm = ShipManager.Instance;
+        if (sm != null && sm.IsPicking) { CancelDrag(); wasDown = rts.Select.IsPressed(); return; }
+
+        HandleMouse(rts);
     }
 
-    void HandlePointer(InputSystem_Actions.RTSActions rts)
+    void HandleMouse(InputSystem_Actions.RTSActions rts)
     {
-        Vector2 pos = rts.Point.ReadValue<Vector2>();
+        bool down = rts.Select.IsPressed();
+        bool pressed = rts.Select.WasPressedThisFrame();
+        bool released = wasDown && !down;
+        wasDown = down;
 
-        if (rts.Select.WasPressedThisFrame())
+        Vector2 screen = rts.Point.ReadValue<Vector2>();
+
+        if (pressed)
         {
-            pressing = !(EventSystem.current != null && EventSystem.current.IsPointerOverGameObject());
-            boxActive = false;
-            dragStart = pos;
+            bool overUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+            pressing = !overUI;
+            dragging = false;
+            dragStart = dragNow = screen;
         }
         if (!pressing) return;
 
-        if (!boxActive && rts.Select.IsPressed() &&
-            (pos - dragStart).sqrMagnitude > DragThreshold * DragThreshold)
-            boxActive = true;
+        dragNow = screen;
+        if (!dragging && (dragNow - dragStart).sqrMagnitude > DragThreshold * DragThreshold) dragging = true;
+        if (!released) return;
 
-        if (rts.Select.WasReleasedThisFrame())
+        pressing = false;
+        bool additive = Keyboard.current != null &&
+                        (Keyboard.current.leftShiftKey.isPressed || Keyboard.current.rightShiftKey.isPressed);
+
+        if (cam == null) cam = Camera.main;
+        if (cam == null) { dragging = false; return; }
+
+        if (dragging)
         {
-            bool shift = ShiftHeld();
-            bool wasBox = boxActive;
-            CancelDrag();
-            if (wasBox) BoxSelect(dragStart, pos, shift);
-            else ClickSelect(pos, shift);
+            dragging = false;
+            BoxSelect(additive);
+        }
+        else
+        {
+            Component picked = Pick(cam.ScreenToWorldPoint(screen));
+            if (picked is Ship ship && additive) ToggleShip(ship);
+            else if (picked == null && additive) { /* shift-click on empty space keeps the selection */ }
+            else Select(picked);
         }
     }
 
-    void CancelDrag() { pressing = false; boxActive = false; }
-
-    static bool ShiftHeld()
+    void CancelDrag()
     {
-        var kb = Keyboard.current;
-        return kb != null && (kb.leftShiftKey.isPressed || kb.rightShiftKey.isPressed);
+        pressing = false;
+        dragging = false;
     }
 
-    void ClickSelect(Vector2 screenPos, bool shift)
+    void BoxSelect(bool additive)
     {
-        if (cam == null) cam = Camera.main;
-        if (cam == null) return;
+        var sm = ShipManager.Instance;
+        if (sm == null) return;
 
-        Vector2 world = cam.ScreenToWorldPoint(screenPos);
-        var pick = Pick(world);
+        var r = Rect.MinMaxRect(Mathf.Min(dragStart.x, dragNow.x), Mathf.Min(dragStart.y, dragNow.y),
+                                Mathf.Max(dragStart.x, dragNow.x), Mathf.Max(dragStart.y, dragNow.y));
 
-        if (shift)
+        var list = new List<Ship>();
+        if (additive) list.AddRange(shipGroup);
+        foreach (var s in sm.Ships)
         {
-            if (pick is Ship s) ToggleShip(s);   // shift-click on anything else does nothing
-            return;
-        }
-        Select(pick);
-    }
-
-    void BoxSelect(Vector2 a, Vector2 b, bool additive)
-    {
-        if (cam == null) cam = Camera.main;
-        if (cam == null) return;
-
-        var rect = Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y),
-                                   Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
-        var found = new List<Ship>();
-        foreach (var s in FindObjectsByType<Ship>(FindObjectsSortMode.None))
-        {
+            if (s == null || list.Contains(s)) continue;
             Vector3 sp = cam.WorldToScreenPoint(s.transform.position);
-            if (sp.z >= 0f && rect.Contains(new Vector2(sp.x, sp.y))) found.Add(s);
+            if (r.Contains(new Vector2(sp.x, sp.y))) list.Add(s);
         }
 
-        if (found.Count == 0)
-        {
-            if (!additive) Select(null);
-            return;
-        }
-        SelectShips(found, additive);
+        if (list.Count == 0) { if (!additive) Select(null); return; }
+        SelectShips(list);
     }
 
     Component Pick(Vector2 world)
@@ -194,50 +205,57 @@ public class SelectionManager : MonoBehaviour
 
     // ------------------------------------------------------------------ selection API
 
-    /// <summary>Selects one thing (or nothing). Clears any ship group.</summary>
+    /// <summary>Selects one thing (or nothing). Selecting a ship makes it a group of one.</summary>
     public void Select(Component c)
     {
-        SelectedShips.Clear();
-        if (c is Ship s) SelectedShips.Add(s);
-        SetPrimary(c);
+        shipGroup.Clear();
+        if (c is Ship s) shipGroup.Add(s);
+        Apply(c);
     }
 
-    /// <summary>Selects a group of ships. additive = keep the ships already selected.</summary>
-    public void SelectShips(List<Ship> ships, bool additive)
+    /// <summary>Selects several ships. The first one becomes the primary.</summary>
+    public void SelectShips(IList<Ship> list)
     {
-        if (!additive) SelectedShips.Clear();
-        foreach (var s in ships)
-            if (s != null && !SelectedShips.Contains(s)) SelectedShips.Add(s);
-        SetPrimary(SelectedShips.Count > 0 ? SelectedShips[0] : null);
+        var copy = new List<Ship>();
+        if (list != null) foreach (var s in list) if (s != null) copy.Add(s);   // list may alias shipGroup
+        shipGroup.Clear();
+        shipGroup.AddRange(copy);
+        Apply(copy.Count > 0 ? copy[0] : null);
     }
 
-    public void ToggleShip(Ship s)
+    public void ToggleShip(Ship ship)
     {
-        if (s == null) return;
-        if (!SelectedShips.Remove(s)) SelectedShips.Add(s);
-        SetPrimary(SelectedShips.Count > 0 ? SelectedShips[0] : null);
+        if (ship == null) return;
+        if (!shipGroup.Remove(ship)) shipGroup.Add(ship);
+        Apply(shipGroup.Count > 0 ? shipGroup[0] : null);
     }
 
-    void SetPrimary(Component c)
+    void Apply(Component primary)
     {
-        Selected = c;
-        hasSelection = c != null;
-        ring.gameObject.SetActive(hasSelection);
-        if (hasSelection) SetRingRadius(ring, RadiusOf(c));
+        Selected = primary;
+        hasSelection = primary != null;
+        mainRing.lr.gameObject.SetActive(hasSelection);
+        if (hasSelection) SetRingRadius(mainRing, RadiusOf(primary));
+        SyncExtraRings();
         SelectionChanged?.Invoke();
     }
 
-    void PruneShips()
+    void PruneDestroyed()
     {
-        bool removed = SelectedShips.RemoveAll(s => s == null) > 0;
         if (!hasSelection) return;
 
-        if (Selected == null)   // primary was destroyed
+        bool changed = false;
+        for (int i = shipGroup.Count - 1; i >= 0; i--)
+            if (shipGroup[i] == null) { shipGroup.RemoveAt(i); changed = true; }
+
+        if (Selected == null)
         {
-            SetPrimary(SelectedShips.Count > 0 ? SelectedShips[0] : null);
+            if (shipGroup.Count > 0) Apply(shipGroup[0]);
+            else Select(null);
         }
-        else if (removed)
+        else if (changed)
         {
+            SyncExtraRings();
             SelectionChanged?.Invoke();
         }
     }
@@ -282,36 +300,52 @@ public class SelectionManager : MonoBehaviour
 
     // ------------------------------------------------------------------ highlight rings
 
-    static readonly Color RingColor = new Color(0.35f, 0.9f, 1f, 0.95f);
-
-    LineRenderer MakeRing(string name)
+    RingView MakeRing(string name, Color color)
     {
-        if (ringMat == null) ringMat = new Material(Shader.Find("Sprites/Default"));
         var go = new GameObject(name);
         go.transform.SetParent(transform, false);
         var lr = go.AddComponent<LineRenderer>();
         lr.sharedMaterial = ringMat;
         lr.useWorldSpace = false;
         lr.loop = true;
-        lr.positionCount = RingPoints;
-        lr.startColor = lr.endColor = RingColor;
+        lr.positionCount = 64;
+        lr.startColor = lr.endColor = color;
         lr.sortingOrder = 5000;
         lr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         lr.receiveShadows = false;
         go.SetActive(false);
-        return lr;
+        return new RingView { lr = lr };
     }
 
-    void BuildRing() => ring = MakeRing("SelectionRing");
-
-    void SetRingRadius(LineRenderer lr, float r)
+    void BuildRings()
     {
-        for (int i = 0; i < RingPoints; i++)
+        ringMat = new Material(Shader.Find("Sprites/Default"));
+        mainRing = MakeRing("SelectionRing", new Color(0.35f, 0.9f, 1f, 0.95f));
+    }
+
+    /// <summary>Makes sure there is one extra ring for each ship after the first.</summary>
+    void SyncExtraRings()
+    {
+        int need = Mathf.Max(0, shipGroup.Count - 1);
+        while (extraRings.Count < need)
+            extraRings.Add(MakeRing("GroupRing" + extraRings.Count, new Color(0.35f, 0.9f, 1f, 0.6f)));
+        for (int i = 0; i < extraRings.Count; i++)
         {
-            float a = i / (float)RingPoints * Mathf.PI * 2f;
-            ringBuf[i] = new Vector3(Mathf.Cos(a), Mathf.Sin(a), 0f) * r;
+            bool on = i < need && hasSelection;
+            if (extraRings[i].lr.gameObject.activeSelf != on) extraRings[i].lr.gameObject.SetActive(on);
         }
-        lr.SetPositions(ringBuf);
+    }
+
+    static void SetRingRadius(RingView rv, float r)
+    {
+        if (Mathf.Abs(rv.radius - r) < r * 0.005f) return;   // ships rescale with zoom: only redraw on real change
+        rv.radius = r;
+        int n = rv.lr.positionCount;
+        for (int i = 0; i < n; i++)
+        {
+            float a = i / (float)n * Mathf.PI * 2f;
+            rv.lr.SetPosition(i, new Vector3(Mathf.Cos(a), Mathf.Sin(a), 0f) * r);
+        }
     }
 
     static float RadiusOf(Component c)
@@ -327,56 +361,61 @@ public class SelectionManager : MonoBehaviour
         bool inMenu = GameFlow.Mode == GameMode.Title || GameFlow.Mode == GameMode.MainMenu;
         bool show = hasSelection && Selected != null && !inMenu;
 
-        if (ring.gameObject.activeSelf != show) ring.gameObject.SetActive(show);
-
-        int used = 0;
-        if (show)
+        if (mainRing.lr.gameObject.activeSelf != show) mainRing.lr.gameObject.SetActive(show);
+        if (!show)
         {
-            if (cam == null) cam = Camera.main;
-            float ortho = cam != null ? cam.orthographicSize : 10f;
-            float width = Mathf.Max(0.08f, ortho * 0.006f);   // constant on-screen thickness
-
-            ring.transform.position = Selected.transform.position;
-            ring.widthMultiplier = width;
-            if (Selected is Ship) SetRingRadius(ring, RadiusOf(Selected));   // ships change size with zoom
-
-            // rings for the rest of the group
-            foreach (var s in SelectedShips)
-            {
-                if (s == null || s == Selected) continue;
-                if (used >= extraRings.Count) extraRings.Add(MakeRing("GroupRing" + used));
-                var r = extraRings[used++];
-                if (!r.gameObject.activeSelf) r.gameObject.SetActive(true);
-                r.transform.position = s.transform.position;
-                r.widthMultiplier = width;
-                SetRingRadius(r, RadiusOf(s));
-            }
+            foreach (var e in extraRings)
+                if (e.lr.gameObject.activeSelf) e.lr.gameObject.SetActive(false);
+            return;
         }
-        for (int i = used; i < extraRings.Count; i++)
-            if (extraRings[i].gameObject.activeSelf) extraRings[i].gameObject.SetActive(false);
+
+        if (cam == null) cam = Camera.main;
+        float ortho = cam != null ? cam.orthographicSize : 10f;
+        float width = Mathf.Max(0.08f, ortho * 0.006f);   // constant on-screen thickness
+
+        UpdateRing(mainRing, Selected, width);
+        SyncExtraRings();
+        for (int i = 0; i < extraRings.Count; i++)
+        {
+            if (i + 1 >= shipGroup.Count) break;
+            var s = shipGroup[i + 1];
+            if (s == null) { extraRings[i].lr.gameObject.SetActive(false); continue; }
+            UpdateRing(extraRings[i], s, width);
+        }
     }
 
-    // ------------------------------------------------------------------ drag box (drawn with OnGUI)
+    static void UpdateRing(RingView rv, Component target, float width)
+    {
+        rv.lr.transform.position = target.transform.position;
+        rv.lr.widthMultiplier = width;
+        SetRingRadius(rv, RadiusOf(target));
+    }
+
+    // ------------------------------------------------------------------ drag box
 
     void OnGUI()
     {
-        if (!boxActive || Mouse.current == null) return;
+        if (!dragging || Event.current.type != EventType.Repaint) return;
 
-        Vector2 cur = Mouse.current.position.ReadValue();
-        float x = Mathf.Min(dragStart.x, cur.x), xMax = Mathf.Max(dragStart.x, cur.x);
-        float yMin = Mathf.Min(dragStart.y, cur.y), yMax = Mathf.Max(dragStart.y, cur.y);
-        // GUI space has y pointing down
-        var r = new Rect(x, Screen.height - yMax, xMax - x, yMax - yMin);
+        float x0 = Mathf.Min(dragStart.x, dragNow.x), x1 = Mathf.Max(dragStart.x, dragNow.x);
+        float y0 = Screen.height - Mathf.Max(dragStart.y, dragNow.y), y1 = Screen.height - Mathf.Min(dragStart.y, dragNow.y);
+        var r = new Rect(x0, y0, x1 - x0, y1 - y0);
+
+        if (boxTex == null)
+        {
+            boxTex = new Texture2D(1, 1);
+            boxTex.SetPixel(0, 0, Color.white);
+            boxTex.Apply();
+        }
 
         var old = GUI.color;
         GUI.color = new Color(0.35f, 0.9f, 1f, 0.15f);
-        GUI.DrawTexture(r, Texture2D.whiteTexture);
+        GUI.DrawTexture(r, boxTex);
         GUI.color = new Color(0.35f, 0.9f, 1f, 0.9f);
-        const float t = 1f;
-        GUI.DrawTexture(new Rect(r.x, r.y, r.width, t), Texture2D.whiteTexture);
-        GUI.DrawTexture(new Rect(r.x, r.yMax - t, r.width, t), Texture2D.whiteTexture);
-        GUI.DrawTexture(new Rect(r.x, r.y, t, r.height), Texture2D.whiteTexture);
-        GUI.DrawTexture(new Rect(r.xMax - t, r.y, t, r.height), Texture2D.whiteTexture);
+        GUI.DrawTexture(new Rect(r.x, r.y, r.width, 1f), boxTex);
+        GUI.DrawTexture(new Rect(r.x, r.yMax - 1f, r.width, 1f), boxTex);
+        GUI.DrawTexture(new Rect(r.x, r.y, 1f, r.height), boxTex);
+        GUI.DrawTexture(new Rect(r.xMax - 1f, r.y, 1f, r.height), boxTex);
         GUI.color = old;
     }
 
@@ -388,13 +427,12 @@ public class SelectionManager : MonoBehaviour
         title = body = null;
         if (!hasSelection || Selected == null) return false;
 
-        if (SelectedShips.Count > 1)
+        if (shipGroup.Count > 1)
         {
-            title = SelectedShips.Count + " ships selected";
-            body = DescribeGroup();
+            title = shipGroup.Count + " ships selected";
+            body = DescribeGroup(shipGroup);
             return true;
         }
-
         if (Selected is ISelectable s)
         {
             title = s.SelectionTitle;
@@ -410,26 +448,41 @@ public class SelectionManager : MonoBehaviour
         return false;
     }
 
-    string DescribeGroup()
+    static string DescribeGroup(IReadOnlyList<Ship> group)
     {
-        var sb = new StringBuilder();
-        float fuel = 0f, cargo = 0f;
-        const int MaxLines = 20;
-        int shown = 0;
+        int moving = 0, docked = 0, idle = 0, routes = 0;
+        float fuel = 0f, tank = 0f, cargo = 0f, hold = 0f;
+        var totals = new float[ResourceInfo.Count];
+        var classes = new Dictionary<string, int>();
 
-        foreach (var s in SelectedShips)
+        foreach (var s in group)
         {
-            if (s == null) continue;
-            fuel += s.data.fuel;
-            cargo += s.data.CargoTotal();
-            if (shown++ < MaxLines)
-                sb.AppendLine("<b>" + s.data.name + "</b>  <color=#888888>" + s.StatusText() + "</color>");
-        }
-        if (shown > MaxLines) sb.AppendLine("<color=#888888>+" + (shown - MaxLines) + " more</color>");
+            if (s == null || s.data == null) continue;
+            var d = s.data;
+            if (d.mode == ShipData.Moving) moving++;
+            else if (d.mode == ShipData.Docked) docked++;
+            else idle++;
+            if (d.autoOn) routes++;
 
+            fuel += d.fuel; tank += s.def.fuelTank;
+            cargo += d.CargoTotal(); hold += s.def.cargo;
+            foreach (var t in ResourceInfo.Physical) totals[(int)t] += d.cargo[(int)t];
+
+            classes.TryGetValue(s.def.name, out int n);
+            classes[s.def.name] = n + 1;
+        }
+
+        var sb = new StringBuilder();
+        foreach (var kv in classes) sb.AppendLine(kv.Key + " x" + kv.Value);
         sb.AppendLine();
-        sb.AppendLine("Total fuel: " + fuel.ToString("0") + "   Total cargo: " + cargo.ToString("0"));
-        sb.AppendLine("\n<color=#888888>Right-click: order all selected\nShift-click: add / remove   Drag: box select</color>");
+        sb.AppendLine("Moving " + moving + "   Docked " + docked + "   Idle " + idle);
+        sb.AppendLine("On auto route: " + routes);
+        sb.AppendLine("Fuel: " + fuel.ToString("0") + " / " + tank.ToString("0"));
+        sb.AppendLine("Cargo: " + cargo.ToString("0") + " / " + hold.ToString("0"));
+        foreach (var t in ResourceInfo.Physical)
+            if (totals[(int)t] > 0.5f)
+                sb.AppendLine("  " + ResourceInfo.Coloured(t) + "  " + totals[(int)t].ToString("N0"));
+        sb.AppendLine("\n<color=#888888>Right-click: move in formation, or dock all\nUse the ship panel for routes</color>");
         return sb.ToString();
     }
 

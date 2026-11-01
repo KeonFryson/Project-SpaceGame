@@ -3,13 +3,15 @@ using UnityEngine;
 
 /// <summary>
 /// The in-world view of a ShipData: a placeholder sprite coloured by role, kinematic movement on
-/// game time (so pause and speed apply), fuel burn by distance, docking. ISelectable so
-/// SelectionManager can pick it and show its info. Spawned by ShipManager.
+/// game time (so pause and speed apply), fuel burn by distance, docking, and automatic routes
+/// (see ShipAutomation). ISelectable so SelectionManager can pick it and show its info.
+/// Spawned by ShipManager.
 /// </summary>
 public class Ship : MonoBehaviour, ISelectable
 {
     public ShipData data;
     public ShipDef def;
+    public ShipAutomation auto;
 
     ShipManager mgr;
     SpriteRenderer sr;
@@ -24,6 +26,8 @@ public class Ship : MonoBehaviour, ISelectable
         data = d;
         def = ShipDefs.Get(d.cls);
         gameObject.name = d.name;
+        data.EnsureCargo();
+        auto = new ShipAutomation(this, mgr);
 
         sr = gameObject.AddComponent<SpriteRenderer>();
         sr.sprite = Triangle();
@@ -54,7 +58,15 @@ public class Ship : MonoBehaviour, ISelectable
         foreach (var t in ResourceInfo.Physical)
             if (data.cargo[(int)t] > 0.5f)
                 sb.AppendLine("  " + ResourceInfo.Coloured(t) + "  " + data.cargo[(int)t].ToString("N0"));
-        sb.AppendLine("\n<color=#888888>Right-click: move, or dock at a body</color>");
+
+        if (data.autoOn)
+        {
+            sb.AppendLine("\n<color=#7dff9b>Auto route</color>");
+            sb.AppendLine("A: " + mgr.BodyName(data.autoA) + "   B: " + mgr.BodyName(data.autoB));
+            sb.AppendLine("<color=#888888>" + auto.Status + "</color>");
+        }
+
+        sb.AppendLine("\n<color=#888888>Right-click: move, or dock at a body\nShift+click or drag a box to select several</color>");
         return sb.ToString();
     }
 
@@ -69,20 +81,58 @@ public class Ship : MonoBehaviour, ISelectable
         }
     }
 
-    // ------------------------------------------------------------------ orders
+    // ------------------------------------------------------------------ orders (manual: these cancel a route)
 
-    public bool OrderMove(Vector2 worldPoint) => BeginMove(-1, worldPoint - (Vector2)mgr.Origin);
+    /// <summary>Turns the route off. Returns true if one was running.</summary>
+    public bool CancelAuto()
+    {
+        if (!data.autoOn) return false;
+        data.autoOn = false;
+        auto.Reset();
+        return true;
+    }
 
-    public bool OrderDock(CelestialBody body) => BeginMove(body.index, Vector2.zero);
+    public bool OrderMove(Vector2 worldPoint)
+    {
+        CancelAuto();
+        return BeginMove(-1, worldPoint - (Vector2)mgr.Origin);
+    }
+
+    public bool OrderDock(CelestialBody body)
+    {
+        CancelAuto();
+        return BeginMove(body.index, Vector2.zero);
+    }
 
     public void OrderStop()
     {
         if (data.mode != ShipData.Moving) return;
+        CancelAuto();
         data.mode = ShipData.Idle;
         data.targetBody = -1;
     }
 
-    bool BeginMove(int bodyIndex, Vector2 point)
+    // ------------------------------------------------------------------ orders (used by ShipAutomation)
+
+    /// <summary>Quiet dock order for automation. False if the body is missing or the fuel won't reach.</summary>
+    public bool AutoDock(int bodyIndex) => BeginMove(bodyIndex, Vector2.zero, true);
+
+    /// <summary>Fuel needed to fly from here and dock at the body (infinite if it isn't loaded).</summary>
+    public float FuelToReach(int bodyIndex)
+    {
+        var body = mgr.FindBody(bodyIndex);
+        if (body == null) return float.MaxValue;
+        float stop = DockRadius(body.data.diameter);
+        return Mathf.Max(0f, Vector2.Distance(data.pos, BodyLocal(body)) - stop) * def.fuelPerUnit;
+    }
+
+    public float DistanceTo(int bodyIndex)
+    {
+        var body = mgr.FindBody(bodyIndex);
+        return body == null ? float.MaxValue : Vector2.Distance(data.pos, BodyLocal(body));
+    }
+
+    bool BeginMove(int bodyIndex, Vector2 point, bool quiet = false)
     {
         Vector2 target = point;
         float stop = 0f;
@@ -97,7 +147,8 @@ public class Ship : MonoBehaviour, ISelectable
         float need = Mathf.Max(0f, Vector2.Distance(data.pos, target) - stop) * def.fuelPerUnit;
         if (need > data.fuel + 0.001f)
         {
-            ToastUI.Show(data.name + ": not enough fuel (needs " + need.ToString("0") + ", has " + data.fuel.ToString("0") + ")");
+            if (!quiet)
+                ToastUI.Show(data.name + ": not enough fuel (needs " + need.ToString("0") + ", has " + data.fuel.ToString("0") + ")");
             return false;
         }
 
@@ -124,6 +175,8 @@ public class Ship : MonoBehaviour, ISelectable
         {
             Move(dt);
         }
+
+        if (dt > 0f) auto.Tick(dt);
 
         transform.position = mgr.Origin + (Vector3)data.pos;
     }
@@ -174,8 +227,13 @@ public class Ship : MonoBehaviour, ISelectable
         data.mode = ShipData.Docked;
         data.dockedBody = body.index;
         data.targetBody = -1;
-        data.dockOffset = data.pos - BodyLocal(body);
-        ToastUI.Show(data.name + " docked at " + body.data.name);
+
+        // fan arrivals out a little so ships docking together don't sit on top of each other
+        Vector2 off = data.pos - BodyLocal(body);
+        float fan = ((data.id % 7) - 3) * 0.22f * Mathf.Rad2Deg;
+        data.dockOffset = (Vector2)(Quaternion.Euler(0f, 0f, fan) * (Vector3)off);
+
+        if (!data.autoOn) ToastUI.Show(data.name + " docked at " + body.data.name);   // routes would spam this
     }
 
     Vector2 BodyLocal(CelestialBody b) => (Vector2)(b.transform.position - mgr.Origin);
