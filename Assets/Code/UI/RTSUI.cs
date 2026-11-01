@@ -63,7 +63,7 @@ public class RTSUI : MonoBehaviour
             {
                 var t = (ResourceType)i;
                 string value = t == ResourceType.Energy
-                    ? "<color=#777777>--</color>"            // local grids arrive in phase 3
+                    ? gs.EnergyText()
                     : gs.GetEmpireTotal(t).ToString("N0");
                 resLabels[i].text = ResourceInfo.Coloured(t) + " " + value;
             }
@@ -172,7 +172,7 @@ public class RTSUI : MonoBehaviour
         var rt = NewRect("InfoPanel", parent);
         rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0f, 0f);
         rt.anchoredPosition = new Vector2(12f, 12f);
-        rt.sizeDelta = new Vector2(380f, 430f);
+        rt.sizeDelta = new Vector2(380f, 700f);
         rt.gameObject.AddComponent<Image>().color = PanelColor;
         infoPanel = rt.gameObject;
 
@@ -199,8 +199,8 @@ public class RTSUI : MonoBehaviour
         var rt = t.rectTransform;
         rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(1f, 0f);
         rt.anchoredPosition = new Vector2(-12f, 10f);
-        rt.sizeDelta = new Vector2(760f, 22f);
-        t.text = "LMB select   MMB drag / WASD pan   Scroll zoom   P pause   1-3 speed   H home   M map   Esc deselect / pause";
+        rt.sizeDelta = new Vector2(900f, 22f);
+        t.text = "LMB select   RMB order ship   MMB drag / WASD pan   Scroll zoom   P pause   1-3 speed   H home   M map   Esc deselect / pause";
     }
 
     // ------------------------------------------------------------------ helpers

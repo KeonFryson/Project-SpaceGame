@@ -2,8 +2,8 @@ using System.Collections.Generic;
 
 /// <summary>
 /// Everything that must survive a solar system being regenerated / destroyed: remaining deposits,
-/// the stockpile, ownership, buildings and the construction queue. Keyed by (systemId, bodyIndex).
-/// Pure data, no GameObjects.
+/// the stockpile, ownership, buildings, power, population and the build queues.
+/// Keyed by (systemId, bodyIndex). Pure data, no GameObjects.
 /// </summary>
 public class BodyState
 {
@@ -20,10 +20,19 @@ public class BodyState
     public bool isHome;
     public readonly ResourceStock stock = new ResourceStock();
 
-    // ---- buildings (step 2)
-    public int slots;                                                   // set from body size
+    // ---- buildings
+    public int slots;                                                   // from body size
     public readonly int[] buildings = new int[Buildings.Count];        // finished, indexed by (int)BuildingType
     public readonly List<BuildJob> queue = new List<BuildJob>();       // front = being built
+    public readonly List<ShipJob> shipQueue = new List<ShipJob>();     // front = being built (needs a Shipyard)
+
+    // ---- power and population
+    public float solar = 1f;           // solar output multiplier (star class and orbit distance)
+    public float battery;              // stored energy (saved)
+    public float population;           // saved
+    // recomputed every tick, NOT saved
+    public float energyMade, energyUsed, efficiency = 1f;
+    public bool starving;
 
     public BodyState(int systemId, int bodyIndex)
     {
@@ -79,6 +88,17 @@ public class BodyState
         }
     }
 
+    public void ExportShipQueue(out int[] types, out float[] remaining)
+    {
+        types = new int[shipQueue.Count];
+        remaining = new float[shipQueue.Count];
+        for (int i = 0; i < shipQueue.Count; i++)
+        {
+            types[i] = (int)shipQueue[i].cls;
+            remaining[i] = shipQueue[i].remaining;
+        }
+    }
+
     public void LoadBuildings(int[] src)
     {
         if (src == null) return;
@@ -93,5 +113,15 @@ public class BodyState
         for (int i = 0; i < n; i++)
             if (types[i] >= 0 && types[i] < Buildings.Count)
                 queue.Add(new BuildJob { type = (BuildingType)types[i], remaining = remaining[i] });
+    }
+
+    public void LoadShipQueue(int[] types, float[] remaining)
+    {
+        shipQueue.Clear();
+        if (types == null || remaining == null) return;
+        int n = System.Math.Min(types.Length, remaining.Length);
+        for (int i = 0; i < n; i++)
+            if (types[i] >= 0 && types[i] < ShipDefs.Count)
+                shipQueue.Add(new ShipJob { cls = (ShipClass)types[i], remaining = remaining[i] });
     }
 }

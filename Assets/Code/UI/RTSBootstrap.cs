@@ -18,9 +18,12 @@ public static class RTSBootstrap
         go.AddComponent<GameClock>();
         go.AddComponent<EconomySystem>();
         go.AddComponent<SelectionManager>();
+        go.AddComponent<ShipManager>();
         go.AddComponent<RTSUI>();
-        go.AddComponent<MapCardUI>();      // after RTSUI
-        go.AddComponent<BuildPanelUI>();   // after RTSUI
-        go.AddComponent<MenuManager>();    // must come after RTSUI
+        go.AddComponent<MapCardUI>();      // the UI panels below must come after RTSUI
+        go.AddComponent<BuildPanelUI>();
+        go.AddComponent<ShipPanelUI>();
+        go.AddComponent<ToastUI>();
+        go.AddComponent<MenuManager>();    // must come last
     }
 }

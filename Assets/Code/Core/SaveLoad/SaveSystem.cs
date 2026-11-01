@@ -11,9 +11,16 @@ public class BodySave
     public float fertility, stockCapacity;
     public string anomalyName;      // JsonUtility turns null into ""
     public bool owned, isHome;
+
+    // v2: buildings
     public int slots;
     public int[] buildings, queueTypes;
     public float[] queueRemaining;
+
+    // v3: power, population, ship production
+    public float solar, battery, population;
+    public int[] shipQueueTypes;
+    public float[] shipQueueRemaining;
 }
 
 [Serializable]
@@ -39,13 +46,17 @@ public class SaveData
     public float camX, camY, camZ, orthoSize;
 
     public List<BodySave> bodies = new List<BodySave>();
+
+    // v3: ships
+    public List<ShipData> ships = new List<ShipData>();
+    public int nextShipId;
 }
 
 /// <summary>JSON files in persistentDataPath/Saves. Slot 0 = autosave, 1..SlotCount = manual slots.</summary>
 public static class SaveSystem
 {
     public const int SlotCount = 3;
-    public const int CurrentVersion = 2;
+    public const int CurrentVersion = 3;
 
     static string Dir => Path.Combine(Application.persistentDataPath, "Saves");
 
@@ -101,8 +112,7 @@ public static class SaveSystem
         for (int s = 0; s <= SlotCount; s++)
         {
             var d = Read(s);
-            if (d == null) continue;
-            if (d.ticks > bestTicks) { bestTicks = d.ticks; best = s; }
+            if (d != null && d.ticks >= bestTicks) { bestTicks = d.ticks; best = s; }
         }
         return best;
     }

@@ -14,7 +14,7 @@ public static class SolarSystemGenerator
     {
         new Vector2(7, 10), new Vector2(9, 13), new Vector2(11, 15), new Vector2(13, 18), new Vector2(20, 28)
     };
-    static readonly float[] HabitableRadius = { 45f, 65f, 90f, 130f, 220f };
+    public static readonly float[] HabitableRadius = { 45f, 65f, 90f, 130f, 220f };
 
     const float TwoPi = 6.2831853f;
 

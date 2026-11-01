@@ -20,6 +20,9 @@ public static class ResourceGenerator
         "Gravitic Rift", "Temporal Echo", "Dark Matter Cloud", "Derelict Beacon", "Quantum Scar", "Void Bloom"
     };
 
+    // indexed by (int)StarClass: how strong a star's light is at its habitable radius
+    static readonly float[] ClassSolar = { 0.6f, 0.8f, 1.0f, 1.2f, 1.5f };
+
     /// <summary>Does this system have an anomaly, and which body carries it?</summary>
     public static AnomalyInfo RollAnomaly(SolarSystemData sd)
     {
@@ -43,6 +46,19 @@ public static class ResourceGenerator
             bodyIndex = candidates[rng.Next(candidates.Count)],
             name = AnomalyNames[rng.Next(AnomalyNames.Length)]
         };
+    }
+
+    /// <summary>
+    /// Solar Collector output multiplier: star class, and 1 / (orbit distance relative to the
+    /// habitable radius) squared. Moons use their planet's orbit. Clamped to 0.05 .. 3.
+    /// </summary>
+    public static float SolarFor(SolarSystemData sd, int bodyIndex)
+    {
+        var b = sd.bodies[bodyIndex];
+        float dist = b.parentIndex > 0 ? sd.bodies[b.parentIndex].orbitRadius : b.orbitRadius;
+        float hab = SolarSystemGenerator.HabitableRadius[(int)sd.starClass];
+        float zone = Mathf.Max(0.1f, dist / hab);
+        return Mathf.Clamp(ClassSolar[(int)sd.starClass] / (zone * zone), 0.05f, 3f);
     }
 
     public static BodyState Generate(SolarSystemData sd, int bodyIndex)
@@ -82,9 +98,9 @@ public static class ResourceGenerator
         }
 
         st.fertility = GameConfig.Fertility(b.type);
-        if (isAnomalyBody) st.anomalyName = anomaly.name;
         st.slots = Buildings.SlotsFor(b.diameter);
-        Buildings.SlotsFor(b.diameter);
+        st.solar = SolarFor(sd, bodyIndex);
+        if (isAnomalyBody) st.anomalyName = anomaly.name;
         return st;
     }
 }

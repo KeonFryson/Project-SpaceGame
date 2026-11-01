@@ -1,25 +1,28 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
 /// Right-hand build panel. Shows when an OWNED planet / moon is selected: one button per building
-/// (cost, build time, and the reason when it is unavailable) plus the construction queue.
+/// and per buildable ship (cost, build time, and the reason when it's unavailable), plus the
+/// construction and ship queues. Sizes itself to its content.
 /// Lives under RTSUI's canvas so it hides with the HUD. Created by RTSBootstrap after RTSUI.
 /// </summary>
 public class BuildPanelUI : MonoBehaviour
 {
     static readonly Color PanelColor = new Color(0.05f, 0.07f, 0.10f, 0.92f);
     static readonly Color BtnIdle = new Color(0.16f, 0.20f, 0.27f, 1f);
+    static readonly Color ShipIdle = new Color(0.14f, 0.24f, 0.26f, 1f);
     static readonly Color BtnHover = new Color(0.23f, 0.32f, 0.45f, 1f);
     static readonly Color BtnPress = new Color(0.25f, 0.55f, 0.95f, 1f);
     static readonly Color BtnOff = new Color(0.10f, 0.12f, 0.15f, 0.8f);
 
-    sealed class BuildRow { public BuildingDef def; public Button button; public TMP_Text label; }
-    sealed class QueueRow { public GameObject root; public TMP_Text label; }
+    sealed class ItemRow { public Button button; public TMP_Text label; public BuildingDef building; public ShipDef ship; }
+    sealed class QueueRow { public GameObject root; public TMP_Text label; public bool isShip; public int index; }
 
-    readonly List<BuildRow> buildRows = new List<BuildRow>();
+    readonly List<ItemRow> items = new List<ItemRow>();
     readonly List<QueueRow> queueRows = new List<QueueRow>();
     GameObject panel;
     TMP_Text title, slotsLabel, queueHeading;
@@ -78,49 +81,85 @@ public class BuildPanelUI : MonoBehaviour
         slotsLabel.text = "Slots: " + Buildings.SlotsUsed(current) + " / " + current.slots +
                           "   <color=#888888>(Hub uses none)</color>";
 
-        foreach (var row in buildRows)
+        foreach (var row in items)
         {
-            var d = row.def;
-            string reason = Buildings.CanBuild(current, d);
-            string max = d.maxPerBody >= 99 ? "" : "/" + d.maxPerBody;
-            row.label.text =
-                "<b>" + d.name + "</b>  <color=#888888>" + Buildings.Total(current, d.type) + max + "</color>\n" +
-                "<size=80%>" + Buildings.CostText(current, d) + "  -  " + d.buildTime.ToString("0") + "s</size>\n" +
-                "<size=80%>" + (reason != null
-                    ? "<color=#ff7777>" + reason + "</color>"
-                    : "<color=#9fb4cc>" + Buildings.EffectText(current, d) + "</color>") + "</size>";
+            string reason, head, line2, effect;
+            if (row.building != null)
+            {
+                var d = row.building;
+                reason = Buildings.CanBuild(current, d);
+                string max = d.maxPerBody >= 99 ? "" : "/" + d.maxPerBody;
+                head = "<b>" + d.name + "</b>  <color=#888888>" + Buildings.Total(current, d.type) + max +
+                       "  -  " + d.buildTime.ToString("0") + "s</color>";
+                line2 = Buildings.CostText(current, d);
+                effect = Buildings.EffectText(current, d);
+            }
+            else
+            {
+                var d = row.ship;
+                reason = ShipDefs.CanBuild(current, d);
+                head = "<b>" + d.name + "</b>  <color=#888888>ship  -  " + d.buildTime.ToString("0") + "s</color>";
+                line2 = ShipDefs.CostText(current, d);
+                effect = ShipDefs.StatsText(d);
+            }
+
+            row.label.text = head + "\n<size=85%>" + line2 + "</size>\n<size=85%>" +
+                             (reason != null ? "<color=#ff7777>" + reason + "</color>"
+                                             : "<color=#9fb4cc>" + effect + "</color>") + "</size>";
             row.button.interactable = reason == null;
             row.label.alpha = reason == null ? 1f : 0.75f;
         }
 
-        queueHeading.text = current.queue.Count > 0 ? "Construction queue" : "<color=#888888>Construction queue (empty)</color>";
-        for (int i = 0; i < queueRows.Count; i++)
+        bool anyQueue = current.queue.Count + current.shipQueue.Count > 0;
+        queueHeading.text = anyQueue ? "Construction queue" : "<color=#888888>Construction queue (empty)</color>";
+
+        foreach (var q in queueRows)
         {
-            var q = queueRows[i];
-            bool has = i < current.queue.Count;
+            int count = q.isShip ? current.shipQueue.Count : current.queue.Count;
+            bool has = q.index < count;
             if (q.root.activeSelf != has) q.root.SetActive(has);
             if (!has) continue;
 
-            var job = current.queue[i];
-            var d = Buildings.Def(job.type);
-            string status = i == 0
-                ? Mathf.RoundToInt(100f * (1f - job.remaining / d.buildTime)) + "%  " + Mathf.CeilToInt(job.remaining) + "s"
+            string name;
+            float remaining, total;
+            if (q.isShip)
+            {
+                var job = current.shipQueue[q.index];
+                var d = ShipDefs.Get(job.cls);
+                name = d.name; remaining = job.remaining; total = d.buildTime;
+            }
+            else
+            {
+                var job = current.queue[q.index];
+                var d = Buildings.Def(job.type);
+                name = d.name; remaining = job.remaining; total = d.buildTime;
+            }
+            string status = q.index == 0
+                ? Mathf.RoundToInt(100f * (1f - remaining / total)) + "%  " + Mathf.CeilToInt(remaining) + "s"
                 : "waiting";
-            q.label.text = d.name + "  <color=#888888>" + status + "</color>";
+            q.label.text = name + "  <color=#888888>" + status + "</color>";
         }
     }
 
-    void OnBuild(BuildingType t)
+    void OnBuildBuilding(BuildingType t)
     {
         if (current == null) return;
         Buildings.TryQueue(current, t, out _);
         Refresh();
     }
 
-    void OnCancel(int index)
+    void OnBuildShip(ShipClass c)
     {
         if (current == null) return;
-        Buildings.Cancel(current, index);
+        ShipDefs.TryQueue(current, c, out _);
+        Refresh();
+    }
+
+    void OnCancel(bool isShip, int index)
+    {
+        if (current == null) return;
+        if (isShip) ShipDefs.Cancel(current, index);
+        else Buildings.Cancel(current, index);
         Refresh();
     }
 
@@ -131,55 +170,58 @@ public class BuildPanelUI : MonoBehaviour
         var rt = NewRect("BuildPanel", parent);
         rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(1f, 1f);
         rt.anchoredPosition = new Vector2(-12f, -100f);     // below the Home / Menu buttons
-        rt.sizeDelta = new Vector2(340f, 660f);
+        rt.sizeDelta = new Vector2(380f, 100f);             // height is set by the layout below
         rt.gameObject.AddComponent<Image>().color = PanelColor;   // blocks clicks to the game below
         panel = rt.gameObject;
 
         var v = panel.AddComponent<VerticalLayoutGroup>();
-        v.padding = new RectOffset(12, 12, 10, 10);
-        v.spacing = 6f;
+        v.padding = new RectOffset(10, 10, 8, 8);
+        v.spacing = 2f;
         v.childControlWidth = v.childControlHeight = true;
         v.childForceExpandWidth = true;
         v.childForceExpandHeight = false;
+        panel.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
         title = NewText(rt, "Title", 20, TextAlignmentOptions.MidlineLeft, FontStyles.Bold, 12f);
-        Height(title.gameObject, 30f);
+        Height(title.gameObject, 28f);
         slotsLabel = NewText(rt, "Slots", 13, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 9f);
-        Height(slotsLabel.gameObject, 20f);
+        Height(slotsLabel.gameObject, 18f);
 
-        foreach (var def in Buildings.Defs) buildRows.Add(MakeBuildRow(rt, def));
+        foreach (var def in Buildings.Defs) items.Add(MakeItemRow(rt, def, null));
+        foreach (var def in ShipDefs.Defs) if (def.buildable) items.Add(MakeItemRow(rt, null, def));
 
         queueHeading = NewText(rt, "QueueHeading", 14, TextAlignmentOptions.MidlineLeft, FontStyles.Bold, 10f);
-        Height(queueHeading.gameObject, 24f);
-        for (int i = 0; i < Buildings.MaxQueue; i++) queueRows.Add(MakeQueueRow(rt, i));
+        Height(queueHeading.gameObject, 22f);
+        for (int i = 0; i < Buildings.MaxQueue; i++) queueRows.Add(MakeQueueRow(rt, false, i));
+        for (int i = 0; i < ShipDefs.MaxQueue; i++) queueRows.Add(MakeQueueRow(rt, true, i));
 
         panel.SetActive(false);
     }
 
-    BuildRow MakeBuildRow(Transform parent, BuildingDef def)
+    ItemRow MakeItemRow(Transform parent, BuildingDef bdef, ShipDef sdef)
     {
-        var rt = NewRect("Build_" + def.name, parent);
+        var rt = NewRect("Item_" + (bdef != null ? bdef.name : sdef.name), parent);
         var img = rt.gameObject.AddComponent<Image>();
         img.color = Color.white;
         var btn = rt.gameObject.AddComponent<Button>();
         btn.targetGraphic = img;
-        StyleButton(btn);
-        var type = def.type;
-        btn.onClick.AddListener(() => OnBuild(type));
-        Height(rt.gameObject, 70f);
+        StyleButton(btn, bdef != null ? BtnIdle : ShipIdle);
+        if (bdef != null) { var t = bdef.type; btn.onClick.AddListener(() => OnBuildBuilding(t)); }
+        else { var c = sdef.cls; btn.onClick.AddListener(() => OnBuildShip(c)); }
+        Height(rt.gameObject, 50f);
 
-        var label = NewText(rt, "Label", 15, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 9f);
-        Stretch(label.rectTransform, 10f, 4f, 10f, 4f);
-        return new BuildRow { def = def, button = btn, label = label };
+        var label = NewText(rt, "Label", 14, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 8f);
+        Stretch(label.rectTransform, 10f, 3f, 10f, 3f);
+        return new ItemRow { button = btn, label = label, building = bdef, ship = sdef };
     }
 
-    QueueRow MakeQueueRow(Transform parent, int index)
+    QueueRow MakeQueueRow(Transform parent, bool isShip, int index)
     {
-        var rt = NewRect("Queue" + index, parent);
+        var rt = NewRect((isShip ? "ShipQueue" : "Queue") + index, parent);
         rt.gameObject.AddComponent<Image>().color = new Color(1f, 1f, 1f, 0.06f);
-        Height(rt.gameObject, 34f);
+        Height(rt.gameObject, 26f);
         var h = rt.gameObject.AddComponent<HorizontalLayoutGroup>();
-        h.padding = new RectOffset(10, 4, 3, 3);
+        h.padding = new RectOffset(10, 4, 2, 2);
         h.spacing = 6f;
         h.childAlignment = TextAnchor.MiddleLeft;
         h.childControlWidth = h.childControlHeight = true;
@@ -196,25 +238,24 @@ public class BuildPanelUI : MonoBehaviour
         img.color = Color.white;
         var btn = b.gameObject.AddComponent<Button>();
         btn.targetGraphic = img;
-        StyleButton(btn);
-        int captured = index;
-        btn.onClick.AddListener(() => OnCancel(captured));
+        StyleButton(btn, BtnIdle);
+        btn.onClick.AddListener(() => OnCancel(isShip, index));
         var le = b.gameObject.AddComponent<LayoutElement>();
-        le.minWidth = le.preferredWidth = 56f;
+        le.minWidth = le.preferredWidth = 60f;
         var t = NewText(b, "Label", 13, TextAlignmentOptions.Midline, FontStyles.Bold);
         Stretch(t.rectTransform, 0f, 0f, 0f, 0f);
         t.text = "Cancel";
 
-        return new QueueRow { root = rt.gameObject, label = label };
+        return new QueueRow { root = rt.gameObject, label = label, isShip = isShip, index = index };
     }
 
-    static void StyleButton(Button btn)
+    static void StyleButton(Button btn, Color idle)
     {
         btn.navigation = new Navigation { mode = Navigation.Mode.None };   // keep WASD / Enter out of the UI
         var cb = btn.colors;
-        cb.normalColor = BtnIdle;
+        cb.normalColor = idle;
         cb.highlightedColor = BtnHover;
-        cb.selectedColor = BtnIdle;
+        cb.selectedColor = idle;
         cb.pressedColor = BtnPress;
         cb.disabledColor = BtnOff;
         cb.colorMultiplier = 1f;
@@ -222,8 +263,7 @@ public class BuildPanelUI : MonoBehaviour
         btn.colors = cb;
         btn.onClick.AddListener(() =>
         {
-            if (UnityEngine.EventSystems.EventSystem.current != null)
-                UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(null);
+            if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
         });
     }
 

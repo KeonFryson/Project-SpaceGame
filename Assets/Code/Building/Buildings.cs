@@ -1,7 +1,13 @@
+using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 
-public enum BuildingType { ColonyHub, MineralMine, RareMetalMine, Farm, GasSkimmer }
+// NOTE: new types are appended at the END so old saves (which store counts by enum index) stay valid.
+public enum BuildingType
+{
+    ColonyHub, MineralMine, RareMetalMine, Farm, GasSkimmer,
+    SolarCollector, PowerPlant, BatteryBank, Refinery, Shipyard
+}
 
 public struct Cost
 {
@@ -20,24 +26,33 @@ public class BuildJob
 public class BuildingDef
 {
     public BuildingType type;
-    public string name, description;
+    public string name, description, tag;
     public Cost[] cost;
     public float buildTime;              // game seconds
     public int maxPerBody = 99;
     public int slotCost = 1;             // 0 = core building, uses no slot
     public bool needsHub = true;
 
+    // power: + makes energy, - uses energy (per building, per second)
+    public float power;
+    public bool scalesWithSolar;         // output is multiplied by the body's solar factor
+    public float gasBurn;                // Gas burned per second to produce the power (Power Plant)
+    public float batteryCapacity;
+
     // production (per building, per game second)
     public bool hasOutput;
     public ResourceType output;
     public float rate;
+    public bool hasInput;                // converts: consumes `input` at inputRate to make `output` (Refinery)
+    public ResourceType input;
+    public float inputRate;
     public bool extractsDeposit;         // drains the body's deposit of the same resource
     public bool scalesWithFertility;
     public bool needsFertility;
 }
 
 /// <summary>
-/// Building data and rules. ALL building tuning lives here (costs, times, rates, caps).
+/// Building data and rules. ALL building tuning lives here (costs, times, rates, power, caps).
 /// Defs must stay in the same order as the BuildingType enum.
 /// </summary>
 public static class Buildings
@@ -45,48 +60,53 @@ public static class Buildings
     public const int MaxQueue = 4;
     public static readonly int Count = System.Enum.GetValues(typeof(BuildingType)).Length;
 
+    static Cost M(float a) => new Cost(ResourceType.Minerals, a);
+    static Cost R(float a) => new Cost(ResourceType.RareMetals, a);
+
     public static readonly BuildingDef[] Defs =
     {
-        new BuildingDef
-        {
-            type = BuildingType.ColonyHub, name = "Colony Hub", description = "Core. Unlocks other buildings.",
-            cost = new[] { new Cost(ResourceType.Minerals, 400f), new Cost(ResourceType.RareMetals, 60f) },
-            buildTime = 30f, maxPerBody = 1, slotCost = 0, needsHub = false
-        },
-        new BuildingDef
-        {
-            type = BuildingType.MineralMine, name = "Mineral Mine", description = "Mines Minerals.",
-            cost = new[] { new Cost(ResourceType.Minerals, 150f) },
-            buildTime = 15f, maxPerBody = 4,
-            hasOutput = true, output = ResourceType.Minerals, rate = 2f, extractsDeposit = true
-        },
-        new BuildingDef
-        {
-            type = BuildingType.RareMetalMine, name = "Rare Metal Mine", description = "Mines Rare Metals (slow).",
-            cost = new[] { new Cost(ResourceType.Minerals, 250f), new Cost(ResourceType.RareMetals, 40f) },
-            buildTime = 25f, maxPerBody = 2,
-            hasOutput = true, output = ResourceType.RareMetals, rate = 0.4f, extractsDeposit = true
-        },
-        new BuildingDef
-        {
-            type = BuildingType.Farm, name = "Farm", description = "Grows Food.",
-            cost = new[] { new Cost(ResourceType.Minerals, 120f) },
-            buildTime = 12f, maxPerBody = 4,
-            hasOutput = true, output = ResourceType.Food, rate = 1.5f, scalesWithFertility = true, needsFertility = true
-        },
-        new BuildingDef
-        {
-            type = BuildingType.GasSkimmer, name = "Gas Skimmer", description = "Skims Gas from a gas giant.",
-            cost = new[] { new Cost(ResourceType.Minerals, 200f), new Cost(ResourceType.RareMetals, 30f) },
-            buildTime = 20f, maxPerBody = 3,
-            hasOutput = true, output = ResourceType.Gas, rate = 1f, extractsDeposit = true
-        },
+        new BuildingDef { type = BuildingType.ColonyHub, name = "Colony Hub", description = "Core. Unlocks other buildings.",
+            tag = "Housing 100", cost = new[] { M(400f), R(60f) }, buildTime = 30f, maxPerBody = 1, slotCost = 0,
+            needsHub = false, power = 6f },
+
+        new BuildingDef { type = BuildingType.MineralMine, name = "Mineral Mine", description = "Mines Minerals.",
+            cost = new[] { M(150f) }, buildTime = 15f, maxPerBody = 4, power = -3f,
+            hasOutput = true, output = ResourceType.Minerals, rate = 2f, extractsDeposit = true },
+
+        new BuildingDef { type = BuildingType.RareMetalMine, name = "Rare Metal Mine", description = "Mines Rare Metals (slow).",
+            cost = new[] { M(250f), R(40f) }, buildTime = 25f, maxPerBody = 2, power = -4f,
+            hasOutput = true, output = ResourceType.RareMetals, rate = 0.4f, extractsDeposit = true },
+
+        new BuildingDef { type = BuildingType.Farm, name = "Farm", description = "Grows Food.",
+            cost = new[] { M(120f) }, buildTime = 12f, maxPerBody = 4, power = -2f,
+            hasOutput = true, output = ResourceType.Food, rate = 1.5f, scalesWithFertility = true, needsFertility = true },
+
+        new BuildingDef { type = BuildingType.GasSkimmer, name = "Gas Skimmer", description = "Skims Gas from a gas giant.",
+            cost = new[] { M(200f), R(30f) }, buildTime = 20f, maxPerBody = 3, power = -4f,
+            hasOutput = true, output = ResourceType.Gas, rate = 1f, extractsDeposit = true },
+
+        new BuildingDef { type = BuildingType.SolarCollector, name = "Solar Collector", description = "Energy from starlight.",
+            cost = new[] { M(100f) }, buildTime = 10f, maxPerBody = 6, power = 5f, scalesWithSolar = true },
+
+        new BuildingDef { type = BuildingType.PowerPlant, name = "Power Plant", description = "Steady Energy, burns Gas.",
+            cost = new[] { M(250f), R(40f) }, buildTime = 25f, maxPerBody = 2, power = 15f, gasBurn = 0.25f },
+
+        new BuildingDef { type = BuildingType.BatteryBank, name = "Battery Bank", description = "Stores surplus Energy.",
+            cost = new[] { M(150f), R(20f) }, buildTime = 15f, maxPerBody = 3, batteryCapacity = 400f },
+
+        new BuildingDef { type = BuildingType.Refinery, name = "Refinery", description = "Turns Gas into Fuel.",
+            cost = new[] { M(200f), R(30f) }, buildTime = 20f, maxPerBody = 2, power = -4f,
+            hasInput = true, input = ResourceType.Gas, inputRate = 1f,
+            hasOutput = true, output = ResourceType.Fuel, rate = 0.5f },
+
+        new BuildingDef { type = BuildingType.Shipyard, name = "Shipyard", description = "Builds small ships.",
+            tag = "Builds ships", cost = new[] { M(300f), R(60f) }, buildTime = 25f, maxPerBody = 1, power = -3f },
     };
 
     public static BuildingDef Def(BuildingType t) => Defs[(int)t];
 
-    /// <summary>Building slots from body diameter (planets are 3-6, gas giants 9-15, moons about 1-2).</summary>
-    public static int SlotsFor(float diameter) => Mathf.Clamp(Mathf.RoundToInt(diameter), 2, 8);
+    /// <summary>Building slots from body diameter (planets 3-6, gas giants 9-15, moons about 1-2).</summary>
+    public static int SlotsFor(float diameter) => Mathf.Clamp(Mathf.RoundToInt(diameter * 1.5f), 3, 12);
 
     /// <summary>Built plus queued.</summary>
     public static int Total(BodyState st, BuildingType t) => st.buildings[(int)t] + st.Queued(t);
@@ -158,10 +178,20 @@ public static class Buildings
         return sb.ToString();
     }
 
-    public static string EffectText(BodyState st, BuildingDef d) =>
-        d.hasOutput ? "+" + EffectiveRate(st, d).ToString("0.0") + "/s " + ResourceInfo.Name(d.output) : d.description;
+    public static string EffectText(BodyState st, BuildingDef d)
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrEmpty(d.tag)) parts.Add(d.tag);
+        if (d.hasOutput) parts.Add("+" + EffectiveRate(st, d).ToString("0.0") + "/s " + ResourceInfo.Name(d.output));
+        if (d.hasInput) parts.Add("uses " + d.inputRate.ToString("0.0") + "/s " + ResourceInfo.Name(d.input));
+        if (d.power > 0f) parts.Add("+" + (d.power * (d.scalesWithSolar ? st.solar : 1f)).ToString("0.#") + " energy");
+        if (d.power < 0f) parts.Add("uses " + (-d.power).ToString("0.#") + " energy");
+        if (d.gasBurn > 0f) parts.Add("burns " + d.gasBurn.ToString("0.##") + " Gas/s");
+        if (d.batteryCapacity > 0f) parts.Add("stores " + d.batteryCapacity.ToString("0") + " energy");
+        return parts.Count > 0 ? string.Join("  -  ", parts) : d.description;
+    }
 
-    /// <summary>Rich text for the info panel: slots, finished buildings and what is under construction.</summary>
+    /// <summary>Rich text for the info panel: slots, finished buildings, construction and ship production.</summary>
     public static string Describe(BodyState st)
     {
         var sb = new StringBuilder();
@@ -192,6 +222,13 @@ public static class Buildings
             for (int i = 0; i < st.queue.Count; i++)
                 sb.AppendLine(Def(st.queue[i].type).name + "  <color=#888888>" +
                               (i == 0 ? Mathf.CeilToInt(st.queue[i].remaining) + "s left" : "waiting") + "</color>");
+        }
+        if (st.shipQueue.Count > 0)
+        {
+            sb.AppendLine("<color=#ffcc55>Ship production</color>");
+            for (int i = 0; i < st.shipQueue.Count; i++)
+                sb.AppendLine(ShipDefs.Get(st.shipQueue[i].cls).name + "  <color=#888888>" +
+                              (i == 0 ? Mathf.CeilToInt(st.shipQueue[i].remaining) + "s left" : "waiting") + "</color>");
         }
         return sb.ToString();
     }

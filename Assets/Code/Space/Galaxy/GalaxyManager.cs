@@ -289,9 +289,10 @@ public class GalaxyManager : MonoBehaviour
 
     private void OnDrawGizmos()
     {
+        if (CurrentSystem == null) return;
         Gizmos.color = Color.red;
         float aspect = Camera.main != null ? Camera.main.aspect : 1.78f;
         float size = OuterOrbit(CurrentSystem) * overviewZoom;
-        if (CurrentSystem != null) Gizmos.DrawWireSphere(Vector3.zero, size);
+        Gizmos.DrawWireSphere(Vector3.zero, size);
     }
 }

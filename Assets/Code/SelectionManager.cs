@@ -308,6 +308,8 @@ public class SelectionManager : MonoBehaviour
                 sb.AppendLine(ResourceInfo.Coloured(t) + "  " + st.stock.Get(t).ToString("N0"));
             sb.AppendLine("<color=#888888>Capacity per resource: " + st.stock.capacity.ToString("N0") + "</color>");
 
+            sb.Append(Heading("Power & Population")); 
+            sb.Append(Colony.Describe(st));
             sb.Append(Heading("Buildings"));
             sb.Append(Buildings.Describe(st));
         }
