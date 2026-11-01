@@ -212,6 +212,8 @@ public class TopDownCameraController : MonoBehaviour
 
     private void HandleZoom()
     {
+        if (UnityEngine.EventSystems.EventSystem.current != null &&
+            UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject()) return;
         if (!enableZoom || Mouse.current == null) return;
 
         float scroll = Mouse.current.scroll.ReadValue().y;
