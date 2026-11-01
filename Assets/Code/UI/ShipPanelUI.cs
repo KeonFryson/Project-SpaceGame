@@ -1,15 +1,13 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
-/// Bottom-centre ship bar for the selected ship(s). Two tabs:
-///  - Cargo & Orders: Stop / Refuel / Unload / Claim. With ONE ship it also shows the cargo transfer table
-///    (unload all / 100, load 100 / all) when docked at one of your bodies. With SEVERAL ships it acts on the
-///    whole group and lists the ships (click a row to narrow the selection to that ship).
+/// Bottom-centre ship bar for the selected ship(s), styled by UITheme. Two tabs:
+///  - Cargo & Orders: Stop / Refuel / Unload / Claim. With ONE ship it also shows fuel and cargo gauges and
+///    the cargo transfer table (unload all / 100, load 100 / all) when docked at one of your bodies.
+///    With SEVERAL ships it acts on the whole group and lists the ships (click a row to narrow the selection).
 ///  - Auto Route: pick two owned planets (A and B), choose per resource whether to carry A > B, B > A or
 ///    balance, and switch the route on. Settings apply to every selected ship. See ShipAutomation.
 /// Lives under RTSUI's canvas. Created by RTSBootstrap after RTSUI.
@@ -20,13 +18,6 @@ public class ShipPanelUI : MonoBehaviour
     const int MaxListRows = 6;
     static readonly float[] Reserves = { 0f, 100f, 500f, 1000f };
 
-    static readonly Color PanelColor = new Color(0.05f, 0.07f, 0.10f, 0.92f);
-    static readonly Color BtnIdle = new Color(0.16f, 0.20f, 0.27f, 1f);
-    static readonly Color BtnHover = new Color(0.23f, 0.32f, 0.45f, 1f);
-    static readonly Color BtnPress = new Color(0.25f, 0.55f, 0.95f, 1f);
-    static readonly Color BtnOff = new Color(0.10f, 0.12f, 0.15f, 0.8f);
-    static readonly Color Dim = new Color(1f, 1f, 1f, 0.45f);
-
     sealed class CargoRow { public GameObject root; public TMP_Text label; public ResourceType type; }
     sealed class ListRow { public GameObject root; public TMP_Text label; public Ship ship; }
     sealed class RuleRow { public GameObject root; public TMP_Text label, ruleLabel; public ResourceType type; }
@@ -36,8 +27,9 @@ public class ShipPanelUI : MonoBehaviour
     readonly List<RuleRow> ruleRows = new List<RuleRow>();
     readonly List<Ship> group = new List<Ship>();
 
-    GameObject panel, manualRoot, routeRoot;
-    TMP_Text title, heading, moreLabel, claimLabel;
+    GameObject panel, manualRoot, routeRoot, gaugeRoot;
+    TMP_Text title, heading, moreLabel, claimLabel, fuelLabel, cargoLabel;
+    UITheme.Bar fuelBar, cargoBar;
     Button stopBtn, refuelBtn, unloadBtn, claimBtn, manualTab, routeTab;
 
     TMP_Text routeStatus, labelA, labelB, routeLabel, refuelLabel, reserveLabel;
@@ -111,16 +103,18 @@ public class ShipPanelUI : MonoBehaviour
         bool multi = group.Count > 1;
 
         title.text = multi
-            ? "<b>" + group.Count + " ships selected</b>  <color=#888888>Shift+click or drag a box to change the group</color>"
-            : "<b>" + primary.data.name + "</b>  <color=#888888>" + primary.StatusText() + "</color>" +
-              (primary.data.autoOn ? "  <color=#7dff9b>ROUTE</color>" : "");
+            ? "<b>" + group.Count + " ships selected</b>  " + UITheme.Dim("Shift+click or drag a box to change the group")
+            : "<b>" + primary.data.name + "</b>  " + UITheme.Dim(primary.StatusText()) +
+              (primary.data.autoOn ? "  " + UITheme.Tint("ROUTE", UITheme.Good) : "");
+
+        RefreshGauges(multi);
 
         int tabNow = routeTabActive ? 1 : 0;
         if (styledTab != tabNow)
         {
             styledTab = tabNow;
-            StyleTab(manualTab, !routeTabActive);
-            StyleTab(routeTab, routeTabActive);
+            UITheme.SetActive(manualTab, !routeTabActive);
+            UITheme.SetActive(routeTab, routeTabActive);
         }
 
         if (manualRoot.activeSelf == routeTabActive) manualRoot.SetActive(!routeTabActive);
@@ -128,6 +122,21 @@ public class ShipPanelUI : MonoBehaviour
 
         if (routeTabActive) RefreshRoute(multi);
         else RefreshManual(multi);
+    }
+
+    void RefreshGauges(bool multi)
+    {
+        if (gaugeRoot.activeSelf == multi) gaugeRoot.SetActive(!multi);
+        if (multi) return;
+
+        var d = primary.data;
+        float fuelFrac = primary.def.fuelTank > 0f ? d.fuel / primary.def.fuelTank : 0f;
+        float cargoFrac = primary.def.cargo > 0f ? d.CargoTotal() / primary.def.cargo : 0f;
+
+        fuelLabel.text = "Fuel  " + d.fuel.ToString("0") + " / " + primary.def.fuelTank.ToString("0");
+        cargoLabel.text = "Cargo  " + d.CargoTotal().ToString("0") + " / " + primary.def.cargo.ToString("0");
+        fuelBar.Set(fuelFrac, fuelFrac < 0.2f ? UITheme.Danger : ResourceInfo.Tint(ResourceType.Fuel));
+        cargoBar.Set(cargoFrac, UITheme.Accent);
     }
 
     void RefreshManual(bool multi)
@@ -173,20 +182,20 @@ public class ShipPanelUI : MonoBehaviour
 
         if (multi)
             heading.text = "Moving " + moving + "   Docked " + docked +
-                           "   <color=#888888>Fuel</color> " + fuel.ToString("0") + "/" + tank.ToString("0") +
-                           "   <color=#888888>Cargo</color> " + cargo.ToString("0") + "/" + hold.ToString("0");
+                           "   " + UITheme.Dim("Fuel") + " " + fuel.ToString("0") + "/" + tank.ToString("0") +
+                           "   " + UITheme.Dim("Cargo") + " " + cargo.ToString("0") + "/" + hold.ToString("0");
         else
             heading.text = canTransfer
                 ? "Transfer cargo  -  " + dockBody.name + " stockpile"
-                : "<color=#888888>Dock at one of your planets to load, unload or refuel</color>";
+                : UITheme.Dim("Dock at one of your planets to load, unload or refuel");
 
         // single ship: cargo table
         foreach (var r in cargoRows)
         {
             if (r.root.activeSelf != canTransfer) r.root.SetActive(canTransfer);
             if (!canTransfer) continue;
-            r.label.text = ResourceInfo.Coloured(r.type) + "   <color=#888888>ship</color> " +
-                           primary.data.cargo[(int)r.type].ToString("N0") + "   <color=#888888>here</color> " +
+            r.label.text = ResourceInfo.Coloured(r.type) + "   " + UITheme.Dim("ship") + " " +
+                           primary.data.cargo[(int)r.type].ToString("N0") + "   " + UITheme.Dim("here") + " " +
                            dockState.stock.Get(r.type).ToString("N0");
         }
 
@@ -201,14 +210,14 @@ public class ShipPanelUI : MonoBehaviour
             var s = group[i];
             row.ship = s;
             var d = s.data;
-            row.label.text = "<b>" + d.name + "</b>  <color=#888888>" + s.StatusText() + "</color>   F " +
+            row.label.text = "<b>" + d.name + "</b>  " + UITheme.Dim(s.StatusText()) + "   F " +
                              d.fuel.ToString("0") + "/" + s.def.fuelTank.ToString("0") + "  C " +
                              d.CargoTotal().ToString("0") + "/" + s.def.cargo.ToString("0") +
-                             (d.autoOn ? "  <color=#7dff9b>ROUTE</color>" : "");
+                             (d.autoOn ? "  " + UITheme.Tint("ROUTE", UITheme.Good) : "");
         }
         bool more = multi && group.Count > MaxListRows;
         if (moreLabel.gameObject.activeSelf != more) moreLabel.gameObject.SetActive(more);
-        if (more) moreLabel.text = "<color=#888888>+" + (group.Count - MaxListRows) + " more ships</color>";
+        if (more) moreLabel.text = UITheme.Dim("+" + (group.Count - MaxListRows) + " more ships");
     }
 
     void RefreshRoute(bool multi)
@@ -221,8 +230,7 @@ public class ShipPanelUI : MonoBehaviour
         int on = 0;
         foreach (var s in group) if (s.data.autoOn) on++;
 
-        string state = on == 0 ? "<color=#888888>Route is off</color>"
-                               : "<color=#7dff9b>" + primary.auto.Status + "</color>";
+        string state = on == 0 ? UITheme.Dim("Route is off") : UITheme.Tint(primary.auto.Status, UITheme.Good);
         routeStatus.text = multi ? "<b>" + on + " / " + group.Count + " on route</b>   " + state : state;
 
         labelA.text = mgr.PickingEndpoint == 0 ? "Click an owned planet..."
@@ -239,10 +247,10 @@ public class ShipPanelUI : MonoBehaviour
         {
             int rule = d.autoRules[(int)r.type];
             r.ruleLabel.text = RuleText(rule);
-            r.ruleLabel.color = rule == ShipData.RuleOff ? Dim : Color.white;
+            r.ruleLabel.color = rule == ShipData.RuleOff ? UITheme.TextDim : UITheme.Accent;
             string stock = sa != null && sb != null
-                ? "   <color=#888888>A</color> " + sa.stock.Get(r.type).ToString("N0") +
-                  "   <color=#888888>B</color> " + sb.stock.Get(r.type).ToString("N0")
+                ? "   " + UITheme.Dim("A") + " " + sa.stock.Get(r.type).ToString("N0") +
+                  "   " + UITheme.Dim("B") + " " + sb.stock.Get(r.type).ToString("N0")
                 : "";
             r.label.text = ResourceInfo.Coloured(r.type) + stock;
         }
@@ -373,32 +381,35 @@ public class ShipPanelUI : MonoBehaviour
 
     void Build(Transform parent)
     {
-        var rt = NewRect("ShipPanel", parent);
+        var rt = UITheme.Panel(parent, "ShipPanel");
         rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0f);
         rt.anchoredPosition = new Vector2(0f, 40f);
         rt.sizeDelta = new Vector2(580f, 100f);               // height set by the layout
-        rt.gameObject.AddComponent<Image>().color = PanelColor;
         panel = rt.gameObject;
 
         var v = panel.AddComponent<VerticalLayoutGroup>();
-        v.padding = new RectOffset(12, 12, 8, 10);
+        v.padding = new RectOffset(12, 12, 10, 10);
         v.spacing = 4f;
         v.childControlWidth = v.childControlHeight = true;
         v.childForceExpandWidth = true;
         v.childForceExpandHeight = false;
         panel.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
 
-        title = NewText(rt, "Title", 18, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 11f);
-        Height(title.gameObject, 28f);
+        title = UITheme.MakeText(rt, "Title", 18, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 11f);
+        UITheme.Height(title.gameObject, 28f);
 
-        var tabs = NewRect("Tabs", rt);
-        Height(tabs.gameObject, 34f);
+        gaugeRoot = NewColumn("Gauges", rt).gameObject;
+        fuelBar = MakeGauge(gaugeRoot.transform, out fuelLabel, ResourceInfo.Tint(ResourceType.Fuel));
+        cargoBar = MakeGauge(gaugeRoot.transform, out cargoLabel, UITheme.Accent);
+
+        var tabs = UITheme.Rect("Tabs", rt);
+        UITheme.Height(tabs.gameObject, 34f);
         var th = tabs.gameObject.AddComponent<HorizontalLayoutGroup>();
         th.spacing = 6f;
         th.childControlWidth = th.childControlHeight = true;
         th.childForceExpandWidth = th.childForceExpandHeight = true;
-        manualTab = MakeButton(tabs, "Cargo & Orders", 0f, 34f, () => SetTab(false), 15f, out _);
-        routeTab = MakeButton(tabs, "Auto Route", 0f, 34f, () => SetTab(true), 15f, out _);
+        manualTab = UITheme.MakeButton(tabs, "Cargo & Orders", 0f, 34f, () => SetTab(false), 15f);
+        routeTab = UITheme.MakeButton(tabs, "Auto Route", 0f, 34f, () => SetTab(true), 15f);
 
         manualRoot = NewColumn("Manual", rt).gameObject;
         BuildManual(manualRoot.transform);
@@ -408,65 +419,85 @@ public class ShipPanelUI : MonoBehaviour
         panel.SetActive(false);
     }
 
+    UITheme.Bar MakeGauge(Transform parent, out TMP_Text label, Color color)
+    {
+        var row = UITheme.Rect("Gauge", parent);
+        UITheme.Height(row.gameObject, 18f);
+        var h = row.gameObject.AddComponent<HorizontalLayoutGroup>();
+        h.spacing = 8f;
+        h.childAlignment = TextAnchor.MiddleLeft;
+        h.childControlWidth = h.childControlHeight = true;
+        h.childForceExpandWidth = h.childForceExpandHeight = false;
+
+        label = UITheme.MakeText(row, "Label", 13, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 9f);
+        var ll = label.gameObject.AddComponent<LayoutElement>();
+        ll.minWidth = ll.preferredWidth = 150f;
+
+        var bar = UITheme.MakeBar(row, "Bar", color, 8f);
+        bar.root.GetComponent<LayoutElement>().flexibleWidth = 1f;
+        return bar;
+    }
+
     void BuildManual(Transform parent)
     {
-        var actions = NewRect("Actions", parent);
-        Height(actions.gameObject, 40f);
+        var actions = UITheme.Rect("Actions", parent);
+        UITheme.Height(actions.gameObject, 40f);
         var h = actions.gameObject.AddComponent<HorizontalLayoutGroup>();
         h.spacing = 8f;
         h.childControlWidth = h.childControlHeight = true;
         h.childForceExpandWidth = h.childForceExpandHeight = true;
-        stopBtn = MakeButton(actions, "Stop", 0f, 40f, OnStop, 16f, out _);
-        refuelBtn = MakeButton(actions, "Refuel", 0f, 40f, OnRefuel, 16f, out _);
-        unloadBtn = MakeButton(actions, "Unload", 0f, 40f, OnUnloadAll, 16f, out _);
-        claimBtn = MakeButton(actions, "Claim", 0f, 40f, OnClaim, 16f, out claimLabel);
+        stopBtn = UITheme.MakeButton(actions, "Stop", 0f, 40f, OnStop, 16f);
+        refuelBtn = UITheme.MakeButton(actions, "Refuel", 0f, 40f, OnRefuel, 16f);
+        unloadBtn = UITheme.MakeButton(actions, "Unload", 0f, 40f, OnUnloadAll, 16f);
+        claimBtn = UITheme.MakeButton(actions, "Claim", 0f, 40f, OnClaim, 16f, out claimLabel);
 
-        heading = NewText(parent, "Heading", 14, TextAlignmentOptions.MidlineLeft, FontStyles.Bold, 9f);
-        Height(heading.gameObject, 22f);
+        heading = UITheme.MakeText(parent, "Heading", 14, TextAlignmentOptions.MidlineLeft, FontStyles.Bold, 9f);
+        heading.color = UITheme.Accent;
+        UITheme.Height(heading.gameObject, 22f);
 
         foreach (var t in ResourceInfo.Physical) cargoRows.Add(MakeCargoRow(parent, t));
         for (int i = 0; i < MaxListRows; i++) listRows.Add(MakeListRow(parent, i));
 
-        moreLabel = NewText(parent, "More", 13, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 9f);
-        Height(moreLabel.gameObject, 20f);
+        moreLabel = UITheme.MakeText(parent, "More", 13, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 9f);
+        UITheme.Height(moreLabel.gameObject, 20f);
     }
 
     void BuildRoute(Transform parent)
     {
-        routeStatus = NewText(parent, "Status", 14, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 9f);
-        Height(routeStatus.gameObject, 24f);
+        routeStatus = UITheme.MakeText(parent, "Status", 14, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 9f);
+        UITheme.Height(routeStatus.gameObject, 24f);
 
-        var ends = NewRect("Ends", parent);
-        Height(ends.gameObject, 38f);
+        var ends = UITheme.Rect("Ends", parent);
+        UITheme.Height(ends.gameObject, 38f);
         var eh = ends.gameObject.AddComponent<HorizontalLayoutGroup>();
         eh.spacing = 8f;
         eh.childControlWidth = eh.childControlHeight = true;
         eh.childForceExpandWidth = eh.childForceExpandHeight = true;
-        MakeButton(ends, "A", 0f, 38f, () => OnPickEnd(0), 15f, out labelA);
-        MakeButton(ends, "B", 0f, 38f, () => OnPickEnd(1), 15f, out labelB);
+        UITheme.MakeButton(ends, "A", 0f, 38f, () => OnPickEnd(0), 15f, out labelA);
+        UITheme.MakeButton(ends, "B", 0f, 38f, () => OnPickEnd(1), 15f, out labelB);
 
-        var opts = NewRect("Options", parent);
-        Height(opts.gameObject, 36f);
+        var opts = UITheme.Rect("Options", parent);
+        UITheme.Height(opts.gameObject, 36f);
         var oh = opts.gameObject.AddComponent<HorizontalLayoutGroup>();
         oh.spacing = 8f;
         oh.childControlWidth = oh.childControlHeight = true;
         oh.childForceExpandWidth = oh.childForceExpandHeight = true;
-        routeBtn = MakeButton(opts, "Route: OFF", 0f, 36f, OnToggleRoute, 15f, out routeLabel);
-        MakeButton(opts, "Auto refuel", 0f, 36f, OnToggleRefuel, 15f, out refuelLabel);
-        MakeButton(opts, "Keep", 0f, 36f, OnCycleReserve, 15f, out reserveLabel);
+        routeBtn = UITheme.MakeButton(opts, "Route: OFF", 0f, 36f, OnToggleRoute, 15f, out routeLabel);
+        UITheme.MakeButton(opts, "Auto refuel", 0f, 36f, OnToggleRefuel, 15f, out refuelLabel);
+        UITheme.MakeButton(opts, "Keep", 0f, 36f, OnCycleReserve, 15f, out reserveLabel);
 
-        var hint = NewText(parent, "Hint", 12, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 8f);
-        hint.text = "<color=#888888>Click a resource to cycle:  Off / A > B / B > A / Balance.  Ships refuel at each stop.</color>";
-        Height(hint.gameObject, 20f);
+        var hint = UITheme.MakeText(parent, "Hint", 12, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 8f);
+        hint.text = UITheme.Dim("Click a resource to cycle:  Off / A > B / B > A / Balance.  Ships refuel at each stop.");
+        UITheme.Height(hint.gameObject, 20f);
 
         foreach (var t in ResourceInfo.Physical) ruleRows.Add(MakeRuleRow(parent, t));
     }
 
     CargoRow MakeCargoRow(Transform parent, ResourceType type)
     {
-        var rt = NewRect("Row_" + type, parent);
-        rt.gameObject.AddComponent<Image>().color = new Color(1f, 1f, 1f, 0.06f);
-        Height(rt.gameObject, 32f);
+        var rt = UITheme.Rect("Row_" + type, parent);
+        rt.gameObject.AddComponent<Image>().color = new Color(0.3f, 0.85f, 1f, 0.06f);
+        UITheme.Height(rt.gameObject, 32f);
         var h = rt.gameObject.AddComponent<HorizontalLayoutGroup>();
         h.padding = new RectOffset(10, 4, 2, 2);
         h.spacing = 4f;
@@ -475,15 +506,15 @@ public class ShipPanelUI : MonoBehaviour
         h.childForceExpandWidth = false;
         h.childForceExpandHeight = true;
 
-        var label = NewText(rt, "Label", 15, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 9f);
+        var label = UITheme.MakeText(rt, "Label", 15, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 9f);
         var ll = label.gameObject.AddComponent<LayoutElement>();
         ll.minWidth = 50f;
         ll.flexibleWidth = 1f;
 
-        MakeButton(rt, "<<", 46f, 0f, () => OnTransfer(type, float.MaxValue, false), 15f, out _);   // unload all
-        MakeButton(rt, "<", 46f, 0f, () => OnTransfer(type, Step, false), 15f, out _);              // unload 100
-        MakeButton(rt, ">", 46f, 0f, () => OnTransfer(type, Step, true), 15f, out _);               // load 100
-        MakeButton(rt, ">>", 46f, 0f, () => OnTransfer(type, float.MaxValue, true), 15f, out _);    // load all
+        UITheme.MakeButton(rt, "<<", 46f, 0f, () => OnTransfer(type, float.MaxValue, false), 15f);   // unload all
+        UITheme.MakeButton(rt, "<", 46f, 0f, () => OnTransfer(type, Step, false), 15f);              // unload 100
+        UITheme.MakeButton(rt, ">", 46f, 0f, () => OnTransfer(type, Step, true), 15f);               // load 100
+        UITheme.MakeButton(rt, ">>", 46f, 0f, () => OnTransfer(type, float.MaxValue, true), 15f);    // load all
 
         return new CargoRow { root = rt.gameObject, label = label, type = type };
     }
@@ -491,10 +522,10 @@ public class ShipPanelUI : MonoBehaviour
     ListRow MakeListRow(Transform parent, int index)
     {
         var row = new ListRow();
-        var btn = MakeButton(parent, "ship" + index, 0f, 30f, () => OnPickShip(row), 14f, out var label);
+        var btn = UITheme.MakeButton(parent, "ship" + index, 0f, 30f, () => OnPickShip(row), 14f, out var label);
         label.alignment = TextAlignmentOptions.MidlineLeft;
         label.fontStyle = FontStyles.Normal;
-        Stretch(label.rectTransform, 10f, 0f, 10f, 0f);
+        UITheme.Stretch(label.rectTransform, 10f, 0f, 10f, 0f);
         row.root = btn.gameObject;
         row.label = label;
         return row;
@@ -502,9 +533,9 @@ public class ShipPanelUI : MonoBehaviour
 
     RuleRow MakeRuleRow(Transform parent, ResourceType type)
     {
-        var rt = NewRect("Rule_" + type, parent);
-        rt.gameObject.AddComponent<Image>().color = new Color(1f, 1f, 1f, 0.06f);
-        Height(rt.gameObject, 30f);
+        var rt = UITheme.Rect("Rule_" + type, parent);
+        rt.gameObject.AddComponent<Image>().color = new Color(0.3f, 0.85f, 1f, 0.06f);
+        UITheme.Height(rt.gameObject, 30f);
         var h = rt.gameObject.AddComponent<HorizontalLayoutGroup>();
         h.padding = new RectOffset(10, 4, 2, 2);
         h.spacing = 6f;
@@ -513,111 +544,23 @@ public class ShipPanelUI : MonoBehaviour
         h.childForceExpandWidth = false;
         h.childForceExpandHeight = true;
 
-        var label = NewText(rt, "Label", 14, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 9f);
+        var label = UITheme.MakeText(rt, "Label", 14, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 9f);
         var ll = label.gameObject.AddComponent<LayoutElement>();
         ll.minWidth = 50f;
         ll.flexibleWidth = 1f;
 
-        MakeButton(rt, "Off", 110f, 0f, () => OnCycleRule(type), 14f, out var ruleLabel);
+        UITheme.MakeButton(rt, "Off", 110f, 0f, () => OnCycleRule(type), 14f, out var ruleLabel);
         return new RuleRow { root = rt.gameObject, label = label, ruleLabel = ruleLabel, type = type };
-    }
-
-    static void StyleTab(Button b, bool active)
-    {
-        var cb = b.colors;
-        cb.normalColor = active ? BtnPress : BtnIdle;
-        cb.selectedColor = cb.normalColor;
-        b.colors = cb;
-    }
-
-    Button MakeButton(Transform parent, string text, float w, float h, UnityAction onClick, float fontSize,
-                      out TMP_Text label)
-    {
-        var rt = NewRect("Btn_" + text, parent);
-        var img = rt.gameObject.AddComponent<Image>();
-        img.color = Color.white;
-        var btn = rt.gameObject.AddComponent<Button>();
-        btn.targetGraphic = img;
-        btn.navigation = new Navigation { mode = Navigation.Mode.None };
-        var cb = btn.colors;
-        cb.normalColor = BtnIdle;
-        cb.highlightedColor = BtnHover;
-        cb.selectedColor = BtnIdle;
-        cb.pressedColor = BtnPress;
-        cb.disabledColor = BtnOff;
-        cb.colorMultiplier = 1f;
-        cb.fadeDuration = 0.08f;
-        btn.colors = cb;
-        btn.onClick.AddListener(() =>
-        {
-            if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
-            onClick();
-        });
-
-        var le = rt.gameObject.AddComponent<LayoutElement>();
-        if (w > 0f) le.minWidth = le.preferredWidth = w;
-        if (h > 0f) le.minHeight = le.preferredHeight = h;
-
-        label = NewText(rt, "Label", fontSize, TextAlignmentOptions.Midline, FontStyles.Bold, 9f);
-        Stretch(label.rectTransform, 4f, 0f, 4f, 0f);
-        label.text = text;
-        return btn;
-    }
-
-    // ------------------------------------------------------------------ layout helpers
-
-    static RectTransform NewRect(string name, Transform parent)
-    {
-        var go = new GameObject(name, typeof(RectTransform));
-        go.transform.SetParent(parent, false);
-        return (RectTransform)go.transform;
     }
 
     static RectTransform NewColumn(string name, Transform parent)
     {
-        var rt = NewRect(name, parent);
+        var rt = UITheme.Rect(name, parent);
         var v = rt.gameObject.AddComponent<VerticalLayoutGroup>();
         v.spacing = 4f;
         v.childControlWidth = v.childControlHeight = true;
         v.childForceExpandWidth = true;
         v.childForceExpandHeight = false;
         return rt;
-    }
-
-    static void Height(GameObject go, float h)
-    {
-        var le = go.GetComponent<LayoutElement>();
-        if (le == null) le = go.AddComponent<LayoutElement>();
-        le.minHeight = le.preferredHeight = h;
-    }
-
-    static void Stretch(RectTransform rt, float left, float bottom, float right, float top)
-    {
-        rt.anchorMin = Vector2.zero;
-        rt.anchorMax = Vector2.one;
-        rt.offsetMin = new Vector2(left, bottom);
-        rt.offsetMax = new Vector2(-right, -top);
-    }
-
-    static TMP_Text NewText(Transform parent, string name, float size, TextAlignmentOptions align,
-                            FontStyles style = FontStyles.Normal, float minSize = 0f)
-    {
-        var rt = NewRect(name, parent);
-        var t = rt.gameObject.AddComponent<TextMeshProUGUI>();
-        t.fontSize = size;
-        t.alignment = align;
-        t.fontStyle = style;
-        t.color = Color.white;
-        t.richText = true;
-        t.raycastTarget = false;
-        t.textWrappingMode = TextWrappingModes.NoWrap;
-        t.overflowMode = TextOverflowModes.Overflow;
-        if (minSize > 0f)
-        {
-            t.enableAutoSizing = true;
-            t.fontSizeMax = size;
-            t.fontSizeMin = minSize;
-        }
-        return t;
     }
 }

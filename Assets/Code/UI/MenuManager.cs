@@ -8,19 +8,13 @@ using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 /// <summary>
-/// Title screen, main menu, pause menu and save/load screen, all built from code.
+/// Title screen, main menu, pause menu and save/load screen, all built from code and styled by UITheme.
 /// Created by RTSBootstrap. Change GameTitle to your game's name.
 /// </summary>
 public class MenuManager : MonoBehaviour
 {
     public const string GameTitle = "STAR FRONTIER";
     const float AutosaveInterval = 180f;   // real seconds
-
-    static readonly Color PanelColor = new Color(0.05f, 0.07f, 0.10f, 0.95f);
-    static readonly Color BtnIdle = new Color(0.16f, 0.20f, 0.27f, 1f);
-    static readonly Color BtnHover = new Color(0.23f, 0.32f, 0.45f, 1f);
-    static readonly Color BtnPress = new Color(0.25f, 0.55f, 0.95f, 1f);
-    static readonly Color BtnOff = new Color(0.10f, 0.12f, 0.15f, 0.8f);
 
     sealed class SlotRow
     {
@@ -244,13 +238,13 @@ public class MenuManager : MonoBehaviour
 
     void RefreshSlots()
     {
-        slotsHeading.text = slotsSaving ? "Save Game" : "Load Game";
+        slotsHeading.text = slotsSaving ? "SAVE GAME" : "LOAD GAME";
         foreach (var r in rows)
         {
             r.root.SetActive(!(slotsSaving && r.slot == 0));   // can't manually save over the autosave
             var d = SaveSystem.Read(r.slot);
             r.info.text = "<b>" + SlotName(r.slot) + "</b>\n<size=75%>" +
-                          (d != null ? Describe(d) : "<color=#888888>Empty</color>") + "</size>";
+                          (d != null ? Describe(d) : UITheme.Dim("Empty")) + "</size>";
 
             string actionText = slotsSaving
                 ? (pendingConfirm == "save" + r.slot ? "Overwrite?" : "Save")
@@ -315,7 +309,7 @@ public class MenuManager : MonoBehaviour
         cgo.AddComponent<GraphicRaycaster>();
 
         // HUD buttons respect notches / rounded corners; full-screen panels intentionally don't
-        var safe = NewRect("SafeArea", cgo.transform);
+        var safe = UITheme.Rect("SafeArea", cgo.transform);
         Fill(safe);
         safe.gameObject.AddComponent<SafeAreaFitter>();
 
@@ -328,51 +322,57 @@ public class MenuManager : MonoBehaviour
 
     void BuildHudButtons(Transform parent)
     {
-        var rt = NewRect("HudButtons", parent);
+        var rt = UITheme.Rect("HudButtons", parent);
         Place(rt, new Vector2(1f, 1f), new Vector2(-12f, -54f), new Vector2(250f, 38f));
         var h = rt.gameObject.AddComponent<HorizontalLayoutGroup>();
         h.spacing = 8f;
         h.childAlignment = TextAnchor.MiddleRight;
         h.childControlWidth = h.childControlHeight = true;
         h.childForceExpandWidth = h.childForceExpandHeight = false;
-        MakeButton(rt, "Home (H)", 120f, 38f, OnHomeClicked, 16f);
-        MakeButton(rt, "Menu (Esc)", 122f, 38f, OnPauseClicked, 16f);
+        UITheme.MakeButton(rt, "Home (H)", 120f, 38f, OnHomeClicked, 16f);
+        UITheme.MakeButton(rt, "Menu (Esc)", 122f, 38f, OnPauseClicked, 16f);
         hudButtons = rt.gameObject;
     }
 
     void BuildTitle(Transform parent)
     {
-        var p = FullPanel("TitleScreen", parent, new Color(0f, 0f, 0f, 0.30f));
+        var p = FullPanel("TitleScreen", parent, new Color(0f, 0.01f, 0.03f, 0.35f));
         titlePanel = p.gameObject;
 
-        var t = NewText(p, "GameTitle", 120, TextAlignmentOptions.Midline, FontStyles.Bold);
+        var t = UITheme.MakeText(p, "GameTitle", 120, TextAlignmentOptions.Midline, FontStyles.Bold);
         t.text = GameTitle;
-        t.color = new Color(0.8f, 0.93f, 1f);
+        t.color = UITheme.TextMain;
         t.characterSpacing = 12f;
         t.enableAutoSizing = true; t.fontSizeMin = 36f; t.fontSizeMax = 120f;   // long names still fit
         Place(t.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, 90f), new Vector2(1700f, 180f));
 
-        var s = NewText(p, "Subtitle", 28, TextAlignmentOptions.Midline);
-        s.text = "A galaxy of procedural worlds awaits";
-        s.color = new Color(1f, 1f, 1f, 0.7f);
-        Place(s.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -10f), new Vector2(1000f, 50f));
+        Line(p, new Vector2(0f, 0f), 900f);
 
-        pressKey = NewText(p, "PressKey", 30, TextAlignmentOptions.Midline, FontStyles.Bold);
+        var s = UITheme.MakeText(p, "Subtitle", 28, TextAlignmentOptions.Midline);
+        s.text = "A galaxy of procedural worlds awaits";
+        s.color = UITheme.Accent;
+        s.characterSpacing = 4f;
+        Place(s.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -40f), new Vector2(1000f, 50f));
+
+        pressKey = UITheme.MakeText(p, "PressKey", 30, TextAlignmentOptions.Midline, FontStyles.Bold);
         pressKey.text = "PRESS ANY KEY TO START";
+        pressKey.characterSpacing = 6f;
         Place(pressKey.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -250f), new Vector2(1000f, 50f));
     }
 
     void BuildMain(Transform parent)
     {
-        var p = FullPanel("MainMenu", parent, new Color(0f, 0f, 0f, 0.55f));
+        var p = FullPanel("MainMenu", parent, new Color(0f, 0.01f, 0.03f, 0.6f));
         mainPanel = p.gameObject;
 
-        var t = NewText(p, "GameTitle", 84, TextAlignmentOptions.Midline, FontStyles.Bold);
+        var t = UITheme.MakeText(p, "GameTitle", 84, TextAlignmentOptions.Midline, FontStyles.Bold);
         t.text = GameTitle;
-        t.color = new Color(0.8f, 0.93f, 1f);
+        t.color = UITheme.TextMain;
         t.characterSpacing = 10f;
         t.enableAutoSizing = true; t.fontSizeMin = 30f; t.fontSizeMax = 84f;
         Place(t.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, 280f), new Vector2(1400f, 130f));
+
+        Line(p, new Vector2(0f, 205f), 700f);
 
         var list = ButtonColumn(p, 380f, -10f,
             new[] { "Continue", "New Game", "Load Game", "Quit" },
@@ -382,12 +382,14 @@ public class MenuManager : MonoBehaviour
 
     void BuildPause(Transform parent)
     {
-        var p = FullPanel("PauseMenu", parent, new Color(0f, 0f, 0f, 0.60f));
+        var p = FullPanel("PauseMenu", parent, new Color(0f, 0.01f, 0.03f, 0.65f));
         pausePanel = p.gameObject;
 
         var card = Card("Card", p, new Vector2(460f, 490f));
-        var h = NewText(card, "Heading", 40, TextAlignmentOptions.Midline, FontStyles.Bold);
+        var h = UITheme.MakeText(card, "Heading", 40, TextAlignmentOptions.Midline, FontStyles.Bold);
         h.text = "PAUSED";
+        h.color = UITheme.Accent;
+        h.characterSpacing = 8f;
         Place(h.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(400f, 60f));
 
         ButtonColumn(card, 380f, -40f,
@@ -397,15 +399,17 @@ public class MenuManager : MonoBehaviour
 
     void BuildSlots(Transform parent)
     {
-        var p = FullPanel("SlotsScreen", parent, new Color(0f, 0f, 0f, 0.72f));
+        var p = FullPanel("SlotsScreen", parent, new Color(0f, 0.01f, 0.03f, 0.75f));
         slotsPanel = p.gameObject;
 
         var card = Card("Card", p, new Vector2(820f, 600f));
 
-        slotsHeading = NewText(card, "Heading", 38, TextAlignmentOptions.Midline, FontStyles.Bold);
+        slotsHeading = UITheme.MakeText(card, "Heading", 38, TextAlignmentOptions.Midline, FontStyles.Bold);
+        slotsHeading.color = UITheme.Accent;
+        slotsHeading.characterSpacing = 8f;
         Place(slotsHeading.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -20f), new Vector2(700f, 60f));
 
-        var list = NewRect("Rows", card);
+        var list = UITheme.Rect("Rows", card);
         list.anchorMin = new Vector2(0f, 1f);
         list.anchorMax = new Vector2(1f, 1f);
         list.pivot = new Vector2(0.5f, 1f);
@@ -419,18 +423,19 @@ public class MenuManager : MonoBehaviour
 
         for (int s = 0; s <= SaveSystem.SlotCount; s++) rows.Add(BuildRow(list, s));
 
-        slotsStatus = NewText(card, "Status", 18, TextAlignmentOptions.Midline);
-        slotsStatus.color = new Color(0.7f, 0.85f, 1f);
+        slotsStatus = UITheme.MakeText(card, "Status", 18, TextAlignmentOptions.Midline);
+        slotsStatus.color = UITheme.Accent;
         Place(slotsStatus.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 84f), new Vector2(760f, 30f));
 
-        var back = MakeButton(card, "Back", 200f, 52f, CloseSlots);
+        var back = UITheme.MakeButton(card, "Back", 200f, 52f, CloseSlots, 22f);
         Place(back.GetComponent<RectTransform>(), new Vector2(0.5f, 0f), new Vector2(0f, 24f), new Vector2(200f, 52f));
     }
 
     SlotRow BuildRow(Transform parent, int slot)
     {
-        var rt = NewRect("Slot" + slot, parent);
-        rt.gameObject.AddComponent<Image>().color = new Color(1f, 1f, 1f, 0.06f);
+        var rt = UITheme.Rect("Slot" + slot, parent);
+        rt.gameObject.AddComponent<Image>().color = new Color(0.3f, 0.85f, 1f, 0.05f);
+        UITheme.AddFrame(rt, UITheme.AccentDim);
         var le = rt.gameObject.AddComponent<LayoutElement>();
         le.minHeight = le.preferredHeight = 84f;
 
@@ -443,14 +448,14 @@ public class MenuManager : MonoBehaviour
 
         var row = new SlotRow { slot = slot, root = rt.gameObject };
 
-        row.info = NewText(rt, "Info", 22, TextAlignmentOptions.MidlineLeft);
+        row.info = UITheme.MakeText(rt, "Info", 22, TextAlignmentOptions.MidlineLeft);
         var il = row.info.gameObject.AddComponent<LayoutElement>();
         il.minWidth = 100f;
         il.flexibleWidth = 1f;
 
         int captured = slot;
-        row.action = MakeButton(rt, "Load", 140f, 52f, () => OnRowAction(captured), 20f);
-        row.delete = MakeButton(rt, "Delete", 110f, 52f, () => OnRowDelete(captured), 20f);
+        row.action = UITheme.MakeButton(rt, "Load", 140f, 52f, () => OnRowAction(captured), 20f);
+        row.delete = UITheme.MakeButton(rt, "Delete", 110f, 52f, () => OnRowDelete(captured), 20f);
         return row;
     }
 
@@ -459,7 +464,7 @@ public class MenuManager : MonoBehaviour
     List<Button> ButtonColumn(Transform parent, float width, float centerY, string[] labels, UnityAction[] actions)
     {
         const float H = 58f, S = 14f;
-        var col = NewRect("Buttons", parent);
+        var col = UITheme.Rect("Buttons", parent);
         Place(col, new Vector2(0.5f, 0.5f), new Vector2(0f, centerY),
               new Vector2(width, labels.Length * H + (labels.Length - 1) * S));
         var v = col.gameObject.AddComponent<VerticalLayoutGroup>();
@@ -468,43 +473,8 @@ public class MenuManager : MonoBehaviour
         v.childForceExpandWidth = v.childForceExpandHeight = true;
 
         var list = new List<Button>();
-        for (int i = 0; i < labels.Length; i++) list.Add(MakeButton(col, labels[i], width, H, actions[i]));
+        for (int i = 0; i < labels.Length; i++) list.Add(UITheme.MakeButton(col, labels[i], width, H, actions[i], 24f));
         return list;
-    }
-
-    Button MakeButton(Transform parent, string label, float w, float h, UnityAction onClick, float fontSize = 24f)
-    {
-        var rt = NewRect("Btn_" + label, parent);
-        rt.sizeDelta = new Vector2(w, h);
-        var img = rt.gameObject.AddComponent<Image>();
-        img.color = Color.white;
-
-        var btn = rt.gameObject.AddComponent<Button>();
-        btn.targetGraphic = img;
-        btn.navigation = new Navigation { mode = Navigation.Mode.None };   // keep WASD / Enter from driving the UI
-        var cb = btn.colors;
-        cb.normalColor = BtnIdle;
-        cb.highlightedColor = BtnHover;
-        cb.selectedColor = BtnIdle;
-        cb.pressedColor = BtnPress;
-        cb.disabledColor = BtnOff;
-        cb.colorMultiplier = 1f;
-        cb.fadeDuration = 0.08f;
-        btn.colors = cb;
-        btn.onClick.AddListener(() =>
-        {
-            if (EventSystem.current != null) EventSystem.current.SetSelectedGameObject(null);
-            onClick();
-        });
-
-        var le = rt.gameObject.AddComponent<LayoutElement>();
-        le.minWidth = le.preferredWidth = w;
-        le.minHeight = le.preferredHeight = h;
-
-        var t = NewText(rt, "Label", fontSize, TextAlignmentOptions.Midline, FontStyles.Bold);
-        Fill(t.rectTransform);
-        t.text = label;
-        return btn;
     }
 
     static void SetButton(Button b, string text, bool enabled)
@@ -513,14 +483,17 @@ public class MenuManager : MonoBehaviour
         var t = b.GetComponentInChildren<TMP_Text>();
         if (t == null) return;
         t.text = text;
-        t.color = enabled ? Color.white : new Color(1f, 1f, 1f, 0.35f);
+        t.color = enabled ? UITheme.TextMain : new Color(1f, 1f, 1f, 0.35f);
     }
 
-    static RectTransform NewRect(string name, Transform parent)
+    /// <summary>Thin glowing divider line.</summary>
+    static void Line(Transform parent, Vector2 pos, float width)
     {
-        var go = new GameObject(name, typeof(RectTransform));
-        go.transform.SetParent(parent, false);
-        return (RectTransform)go.transform;
+        var rt = UITheme.Rect("Line", parent);
+        Place(rt, new Vector2(0.5f, 0.5f), pos, new Vector2(width, 2f));
+        var img = rt.gameObject.AddComponent<Image>();
+        img.color = new Color(UITheme.Accent.r, UITheme.Accent.g, UITheme.Accent.b, 0.6f);
+        img.raycastTarget = false;
     }
 
     static void Fill(RectTransform rt)
@@ -539,7 +512,7 @@ public class MenuManager : MonoBehaviour
 
     static RectTransform FullPanel(string name, Transform parent, Color color)
     {
-        var rt = NewRect(name, parent);
+        var rt = UITheme.Rect(name, parent);
         Fill(rt);
         rt.gameObject.AddComponent<Image>().color = color;   // raycast target: blocks clicks to the game below
         return rt;
@@ -547,25 +520,8 @@ public class MenuManager : MonoBehaviour
 
     static RectTransform Card(string name, Transform parent, Vector2 size)
     {
-        var rt = NewRect(name, parent);
+        var rt = UITheme.Panel(parent, name, true);
         Place(rt, new Vector2(0.5f, 0.5f), Vector2.zero, size);
-        rt.gameObject.AddComponent<Image>().color = PanelColor;
         return rt;
-    }
-
-    static TMP_Text NewText(Transform parent, string name, float size, TextAlignmentOptions align,
-                            FontStyles style = FontStyles.Normal)
-    {
-        var rt = NewRect(name, parent);
-        var t = rt.gameObject.AddComponent<TextMeshProUGUI>();
-        t.fontSize = size;
-        t.alignment = align;
-        t.fontStyle = style;
-        t.color = Color.white;
-        t.richText = true;
-        t.raycastTarget = false;
-        t.textWrappingMode = TextWrappingModes.NoWrap;
-        t.overflowMode = TextOverflowModes.Overflow;
-        return t;
     }
 }

@@ -62,34 +62,15 @@ public class ToastUI : MonoBehaviour
 
     void Build(Transform parent)
     {
-        var go = new GameObject("Toast", typeof(RectTransform));
-        go.transform.SetParent(parent, false);
-        var rt = (RectTransform)go.transform;
+        var rt = UITheme.Panel(parent, "Toast", false, false);
         rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 1f);
         rt.anchoredPosition = new Vector2(0f, -54f);
-        rt.sizeDelta = new Vector2(640f, 36f);
-        var img = go.AddComponent<Image>();
-        img.color = new Color(0f, 0f, 0f, 0.65f);
-        img.raycastTarget = false;
-        box = go;
+        rt.sizeDelta = new Vector2(640f, 38f);
+        rt.GetComponent<Image>().raycastTarget = false;   // toasts never block clicks
+        box = rt.gameObject;
 
-        var tgo = new GameObject("Text", typeof(RectTransform));
-        tgo.transform.SetParent(go.transform, false);
-        var trt = (RectTransform)tgo.transform;
-        trt.anchorMin = Vector2.zero;
-        trt.anchorMax = Vector2.one;
-        trt.offsetMin = new Vector2(10f, 2f);
-        trt.offsetMax = new Vector2(-10f, -2f);
-        text = tgo.AddComponent<TextMeshProUGUI>();
-        text.fontSize = 18;
-        text.alignment = TextAlignmentOptions.Midline;
-        text.color = Color.white;
-        text.richText = true;
-        text.raycastTarget = false;
-        text.textWrappingMode = TextWrappingModes.NoWrap;
-        text.enableAutoSizing = true;
-        text.fontSizeMax = 18;
-        text.fontSizeMin = 10;
+        text = UITheme.MakeText(rt, "Text", 18, TextAlignmentOptions.Midline, FontStyles.Normal, 10f);
+        UITheme.Stretch(text.rectTransform, 10f, 2f, 10f, 4f);
 
         box.SetActive(false);
     }
