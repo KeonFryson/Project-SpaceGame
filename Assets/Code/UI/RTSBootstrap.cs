@@ -16,8 +16,11 @@ public static class RTSBootstrap
         var go = new GameObject("RTS");
         go.AddComponent<GameState>();
         go.AddComponent<GameClock>();
+        go.AddComponent<EconomySystem>();
         go.AddComponent<SelectionManager>();
         go.AddComponent<RTSUI>();
-        go.AddComponent<MenuManager>();   // must come after RTSUI
+        go.AddComponent<MapCardUI>();      // after RTSUI
+        go.AddComponent<BuildPanelUI>();   // after RTSUI
+        go.AddComponent<MenuManager>();    // must come after RTSUI
     }
 }

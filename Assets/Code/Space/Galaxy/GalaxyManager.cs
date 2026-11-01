@@ -32,13 +32,16 @@ public class GalaxyManager : MonoBehaviour
     public GalaxyData Galaxy { get; private set; }
     public SolarSystemData CurrentSystem { get; private set; }
     public bool MapOpen => mapView != null && mapView.IsOpen;
+    public int MapSelectedId { get; private set; } = -1;
+    public event System.Action MapSelectionChanged;
     public event System.Action<SolarSystemData> SystemLoaded;
     bool overview;
+
     void Start()
     {
         CelestialBody.OrbitTimeScale = 0;
 
-        if (mapView != null) mapView.SystemClicked += LoadSystem;
+        if (mapView != null) mapView.SystemClicked += SetMapSelection;
 
         // This first game is the backdrop behind the title screen; "New Game" generates a fresh one.
         GenerateGalaxy(randomizeSeedOnStart ? Random.Range(1, int.MaxValue) : galaxySeed);
@@ -158,6 +161,23 @@ public class GalaxyManager : MonoBehaviour
 
     // ------------------------------------------------------------------ systems / map
 
+    void SetMapSelection(int id)
+    {
+        if (MapSelectedId == id) return;
+        MapSelectedId = id;
+        if (mapView != null) mapView.SetSelected(id);
+        MapSelectionChanged?.Invoke();
+    }
+
+    /// <summary>The "Go to system" button.</summary>
+    public void GoToSelectedSystem()
+    {
+        int id = MapSelectedId;
+        if (id < 0) return;
+        if (CurrentSystem != null && CurrentSystem.id == id) { CloseMap(); return; }
+        LoadSystem(id);
+    }
+
     public void LoadSystem(int id)
     {
         if (Galaxy == null || id < 0 || id >= Galaxy.systems.Count) return;
@@ -165,6 +185,7 @@ public class GalaxyManager : MonoBehaviour
         var info = Galaxy.systems[id];
         CurrentSystem = SolarSystemGenerator.Generate(info.seed, info.id, info.position);
 
+        SetMapSelection(-1);
         if (mapView != null) mapView.Hide();
         spawner.Spawn(CurrentSystem);   // builds a fresh, visible system
 
@@ -202,6 +223,7 @@ public class GalaxyManager : MonoBehaviour
     {
         if (mapView == null || !mapView.IsOpen) return;
 
+        SetMapSelection(-1);
         mapView.Hide();
         spawner.SetVisible(true);
         if (cameraController != null && CurrentSystem != null)
@@ -247,8 +269,9 @@ public class GalaxyManager : MonoBehaviour
         if (kb.rKey.wasPressedThisFrame) LoadRandomSystem();
         if (kb.gKey.wasPressedThisFrame) StartNewGame();   // G = brand new game
     }
+
     /// <summary>Distance from the star to the outermost thing orbiting it (planet, belt rock or moon).</summary>
-    private static float OuterOrbit(SolarSystemData sd)
+    static float OuterOrbit(SolarSystemData sd)
     {
         float r = 0f;
         foreach (var b in sd.bodies)
@@ -263,6 +286,7 @@ public class GalaxyManager : MonoBehaviour
         }
         return r;
     }
+
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;

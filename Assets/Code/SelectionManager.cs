@@ -309,7 +309,7 @@ public class SelectionManager : MonoBehaviour
             sb.AppendLine("<color=#888888>Capacity per resource: " + st.stock.capacity.ToString("N0") + "</color>");
 
             sb.Append(Heading("Buildings"));
-            sb.AppendLine("<color=#888888>None (building arrives in phase 3)</color>");
+            sb.Append(Buildings.Describe(st));
         }
         return sb.ToString();
     }

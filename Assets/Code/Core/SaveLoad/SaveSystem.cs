@@ -11,6 +11,9 @@ public class BodySave
     public float fertility, stockCapacity;
     public string anomalyName;      // JsonUtility turns null into ""
     public bool owned, isHome;
+    public int slots;
+    public int[] buildings, queueTypes;
+    public float[] queueRemaining;
 }
 
 [Serializable]
@@ -42,7 +45,7 @@ public class SaveData
 public static class SaveSystem
 {
     public const int SlotCount = 3;
-    public const int CurrentVersion = 1;
+    public const int CurrentVersion = 2;
 
     static string Dir => Path.Combine(Application.persistentDataPath, "Saves");
 
@@ -98,7 +101,8 @@ public static class SaveSystem
         for (int s = 0; s <= SlotCount; s++)
         {
             var d = Read(s);
-            if (d != null && d.ticks >= bestTicks) { bestTicks = d.ticks; best = s; }
+            if (d == null) continue;
+            if (d.ticks > bestTicks) { bestTicks = d.ticks; best = s; }
         }
         return best;
     }

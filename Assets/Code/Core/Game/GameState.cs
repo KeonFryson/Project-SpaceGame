@@ -111,6 +111,7 @@ public class GameState : MonoBehaviour
         st.isHome = true;
         st.stock.capacity = GameConfig.HomeStockCapacity;
         foreach (var (type, amount) in GameConfig.StartingStock) st.stock.Add(type, amount);
+        st.buildings[(int)BuildingType.ColonyHub] = 1;
     }
 
     // ------------------------------------------------------------------ save / load
@@ -138,6 +139,9 @@ public class GameState : MonoBehaviour
                 stock = new float[ResourceInfo.Count]
             };
             for (int i = 0; i < ResourceInfo.Count; i++) b.stock[i] = st.stock.Get((ResourceType)i);
+            b.slots = st.slots;
+            b.buildings = (int[])st.buildings.Clone();
+            st.ExportQueue(out b.queueTypes, out b.queueRemaining);
             d.bodies.Add(b);
         }
     }
@@ -164,15 +168,30 @@ public class GameState : MonoBehaviour
             if (b.stock != null)
                 for (int i = 0; i < Mathf.Min(b.stock.Length, ResourceInfo.Count); i++)
                     st.stock.Set((ResourceType)i, b.stock[i]);
+            st.slots = b.slots > 0 ? b.slots : LegacySlots(galaxy, b);
+            st.LoadBuildings(b.buildings);
+            st.LoadQueue(b.queueTypes, b.queueRemaining);
 
             bodies[BodyState.Key(b.systemId, b.bodyIndex)] = st;
             if (st.owned) owned.Add(st);
         }
+
+        // v1 saves had no buildings: give the home planet its Hub
+        if (d.version < 2 && bodies.TryGetValue(BodyState.Key(HomeSystemId, HomeBodyIndex), out var home) && home.Built(BuildingType.ColonyHub) == 0)
+            home.buildings[(int)BuildingType.ColonyHub] = 1;
     }
 
     static void CopyInto(float[] src, float[] dst)
     {
         if (src != null) Array.Copy(src, dst, Mathf.Min(src.Length, dst.Length));
+    }
+
+    static int LegacySlots(GalaxyData g, BodySave b)
+    {
+        if (b.systemId < 0 || b.systemId >= g.systems.Count) return 3;
+        var info = g.systems[b.systemId];
+        var sd = SolarSystemGenerator.Generate(info.seed, info.id, info.position);
+        return b.bodyIndex >= 0 && b.bodyIndex < sd.bodies.Count ? Buildings.SlotsFor(sd.bodies[b.bodyIndex].diameter) : 3;
     }
 
     // ------------------------------------------------------------------ queries

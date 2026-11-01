@@ -20,6 +20,7 @@ public class GalaxyMapView : MonoBehaviour
     Material dotMat, lineMat;
     Texture2D dot;
     LineRenderer marker;
+    LineRenderer selMarker;
     Camera cam;
 
     public void Show(GalaxyData g, int currentSystemId)
@@ -27,6 +28,7 @@ public class GalaxyMapView : MonoBehaviour
         gameObject.SetActive(true);
         cam = Camera.main;
         if (galaxy != g) { galaxy = g; Build(g); }
+        if (selMarker != null) selMarker.gameObject.SetActive(false);
 
         if (marker != null)
         {
@@ -37,6 +39,15 @@ public class GalaxyMapView : MonoBehaviour
     }
 
     public void Hide() => gameObject.SetActive(false);
+
+    /// <summary>Highlights the system picked on the map. -1 clears it.</summary>
+    public void SetSelected(int id)
+    {
+        if (selMarker == null || galaxy == null) return;
+        bool has = id >= 0 && id < galaxy.systems.Count;
+        selMarker.gameObject.SetActive(has);
+        if (has) selMarker.transform.localPosition = galaxy.systems[id].position;
+    }
 
     void Update()
     {
@@ -118,22 +129,30 @@ public class GalaxyMapView : MonoBehaviour
     void CreateMarker()
     {
         lineMat = new Material(Shader.Find("Sprites/Default"));
-        var go = new GameObject("CurrentSystemMarker");
+        marker = MakeRing("CurrentSystemMarker", new Color(0.3f, 1f, 0.6f, 0.9f), markerRadius, 101);
+        selMarker = MakeRing("SelectedSystemMarker", new Color(0.4f, 0.85f, 1f, 1f), markerRadius * 1.5f, 102);
+        selMarker.gameObject.SetActive(false);
+    }
+
+    LineRenderer MakeRing(string name, Color color, float radius, int order)
+    {
+        var go = new GameObject(name);
         go.transform.SetParent(transform, false);
-        marker = go.AddComponent<LineRenderer>();
-        marker.sharedMaterial = lineMat;
-        marker.useWorldSpace = false;
-        marker.loop = true;
-        marker.widthMultiplier = 1f;
-        marker.startColor = marker.endColor = new Color(0.3f, 1f, 0.6f, 0.9f);
-        marker.sortingOrder = 101;
+        var lr = go.AddComponent<LineRenderer>();
+        lr.sharedMaterial = lineMat;
+        lr.useWorldSpace = false;
+        lr.loop = true;
+        lr.widthMultiplier = 1f;
+        lr.startColor = lr.endColor = color;
+        lr.sortingOrder = order;
         const int N = 48;
-        marker.positionCount = N;
+        lr.positionCount = N;
         for (int i = 0; i < N; i++)
         {
             float a = i / (float)N * Mathf.PI * 2f;
-            marker.SetPosition(i, new Vector3(Mathf.Cos(a), Mathf.Sin(a)) * markerRadius);
+            lr.SetPosition(i, new Vector3(Mathf.Cos(a), Mathf.Sin(a)) * radius);
         }
+        return lr;
     }
 
     static Texture2D MakeDot()
