@@ -98,7 +98,6 @@ public static class ResourceGenerator
         }
 
         st.fertility = GameConfig.Fertility(b.type);
-        st.slots = Buildings.SlotsFor(b.diameter);
         st.solar = SolarFor(sd, bodyIndex);
         if (isAnomalyBody) st.anomalyName = anomaly.name;
         return st;

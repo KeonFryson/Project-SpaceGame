@@ -39,7 +39,7 @@ public class GalaxyManager : MonoBehaviour
 
     void Start()
     {
-        CelestialBody.OrbitTimeScale = 0;
+       
 
         if (mapView != null) mapView.SystemClicked += SetMapSelection;
 

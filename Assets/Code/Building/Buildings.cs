@@ -30,8 +30,12 @@ public class BuildingDef
     public Cost[] cost;
     public float buildTime;              // game seconds
     public int maxPerBody = 99;
-    public int slotCost = 1;             // 0 = core building, uses no slot
     public bool needsHub = true;
+
+    // staffing / scaling (replaces building slots)
+    public float workers;                // people needed to run one at full output (0 = unstaffed)
+    public float diminish = 1f;          // each extra copy is worth this fraction of the previous (1 = no falloff)
+    public float costGrowth = 0.25f;     // cost rises by this fraction per copy already built or queued
 
     // power: + makes energy, - uses energy (per building, per second)
     public float power;
@@ -52,8 +56,14 @@ public class BuildingDef
 }
 
 /// <summary>
-/// Building data and rules. ALL building tuning lives here (costs, times, rates, power, caps).
+/// Building data and rules. ALL building tuning lives here (costs, times, rates, power, workers, caps).
 /// Defs must stay in the same order as the BuildingType enum.
+///
+/// There are no building slots. Instead:
+///  - producing buildings need workers (staffing scales output on the whole body, like brownouts do),
+///  - each extra copy of a building is worth less (diminish),
+///  - each extra copy costs more (costGrowth),
+///  - population is capped by housing (Colony Hubs), so growth means more Hubs and more Food.
 /// </summary>
 public static class Buildings
 {
@@ -66,58 +76,66 @@ public static class Buildings
     public static readonly BuildingDef[] Defs =
     {
         new BuildingDef { type = BuildingType.ColonyHub, name = "Colony Hub", description = "Core. Unlocks other buildings.",
-            tag = "Housing 100", cost = new[] { M(400f), R(60f) }, buildTime = 30f, maxPerBody = 1, slotCost = 0,
+            tag = "Housing 100", cost = new[] { M(400f), R(60f) }, buildTime = 30f, maxPerBody = 10, costGrowth = 0.35f,
             needsHub = false, power = 6f },
 
         new BuildingDef { type = BuildingType.MineralMine, name = "Mineral Mine", description = "Mines Minerals.",
-            cost = new[] { M(150f) }, buildTime = 15f, maxPerBody = 4, power = -3f,
+            cost = new[] { M(150f) }, buildTime = 15f, power = -3f,
+            workers = 10f, diminish = 0.88f,
             hasOutput = true, output = ResourceType.Minerals, rate = 2f, extractsDeposit = true },
 
         new BuildingDef { type = BuildingType.RareMetalMine, name = "Rare Metal Mine", description = "Mines Rare Metals (slow).",
-            cost = new[] { M(250f), R(40f) }, buildTime = 25f, maxPerBody = 2, power = -4f,
+            cost = new[] { M(250f), R(40f) }, buildTime = 25f, power = -4f,
+            workers = 15f, diminish = 0.88f,
             hasOutput = true, output = ResourceType.RareMetals, rate = 0.4f, extractsDeposit = true },
 
         new BuildingDef { type = BuildingType.Farm, name = "Farm", description = "Grows Food.",
-            cost = new[] { M(120f) }, buildTime = 12f, maxPerBody = 4, power = -2f,
+            cost = new[] { M(120f) }, buildTime = 12f, power = -2f,
+            workers = 8f, diminish = 0.92f,
             hasOutput = true, output = ResourceType.Food, rate = 1.5f, scalesWithFertility = true, needsFertility = true },
 
         new BuildingDef { type = BuildingType.GasSkimmer, name = "Gas Skimmer", description = "Skims Gas from a gas giant.",
-            cost = new[] { M(200f), R(30f) }, buildTime = 20f, maxPerBody = 3, power = -4f,
+            cost = new[] { M(200f), R(30f) }, buildTime = 20f, power = -4f,
+            workers = 10f, diminish = 0.88f,
             hasOutput = true, output = ResourceType.Gas, rate = 1f, extractsDeposit = true },
 
+        // Power buildings are unstaffed on purpose: power must not depend on staffing, or a brownout could spiral.
         new BuildingDef { type = BuildingType.SolarCollector, name = "Solar Collector", description = "Energy from starlight.",
-            cost = new[] { M(100f) }, buildTime = 10f, maxPerBody = 6, power = 5f, scalesWithSolar = true },
+            cost = new[] { M(100f) }, buildTime = 10f, power = 5f, scalesWithSolar = true },
 
         new BuildingDef { type = BuildingType.PowerPlant, name = "Power Plant", description = "Steady Energy, burns Gas.",
-            cost = new[] { M(250f), R(40f) }, buildTime = 25f, maxPerBody = 2, power = 15f, gasBurn = 0.25f },
+            cost = new[] { M(250f), R(40f) }, buildTime = 25f, power = 15f, gasBurn = 0.25f },
 
         new BuildingDef { type = BuildingType.BatteryBank, name = "Battery Bank", description = "Stores surplus Energy.",
-            cost = new[] { M(150f), R(20f) }, buildTime = 15f, maxPerBody = 3, batteryCapacity = 400f },
+            cost = new[] { M(150f), R(20f) }, buildTime = 15f, batteryCapacity = 400f },
 
         new BuildingDef { type = BuildingType.Refinery, name = "Refinery", description = "Turns Gas into Fuel.",
-            cost = new[] { M(200f), R(30f) }, buildTime = 20f, maxPerBody = 2, power = -4f,
+            cost = new[] { M(200f), R(30f) }, buildTime = 20f, power = -4f,
+            workers = 8f, diminish = 0.95f,
             hasInput = true, input = ResourceType.Gas, inputRate = 1f,
             hasOutput = true, output = ResourceType.Fuel, rate = 0.5f },
 
         new BuildingDef { type = BuildingType.Shipyard, name = "Shipyard", description = "Builds small ships.",
-            tag = "Builds ships", cost = new[] { M(300f), R(60f) }, buildTime = 25f, maxPerBody = 1, power = -3f },
+            tag = "Builds ships", cost = new[] { M(300f), R(60f) }, buildTime = 25f, maxPerBody = 1, power = -3f,
+            workers = 20f },
     };
 
     public static BuildingDef Def(BuildingType t) => Defs[(int)t];
 
-    /// <summary>Building slots from body diameter (planets 3-6, gas giants 9-15, moons about 1-2).</summary>
-    public static int SlotsFor(float diameter) => Mathf.Clamp(Mathf.RoundToInt(diameter * 1.5f), 3, 12);
-
     /// <summary>Built plus queued.</summary>
     public static int Total(BodyState st, BuildingType t) => st.buildings[(int)t] + st.Queued(t);
 
-    public static int SlotsUsed(BodyState st)
+    /// <summary>Worth of n copies, each extra one multiplied by d.diminish (geometric series).</summary>
+    public static float EffectiveCount(BuildingDef d, int n)
     {
-        int used = 0;
-        for (int i = 0; i < Count; i++)
-            used += Total(st, (BuildingType)i) * Defs[i].slotCost;
-        return used;
+        if (n <= 0) return 0f;
+        if (d.diminish >= 0.999f) return n;
+        return (1f - Mathf.Pow(d.diminish, n)) / (1f - d.diminish);
     }
+
+    /// <summary>Cost of one resource entry when countAhead copies are already built or queued.</summary>
+    public static float ScaledCost(BuildingDef d, float baseAmount, int countAhead) =>
+        Mathf.Ceil(baseAmount * (1f + d.costGrowth * countAhead));
 
     public static float EffectiveRate(BodyState st, BuildingDef d) =>
         d.rate * (d.scalesWithFertility ? st.fertility : 1f);
@@ -135,30 +153,42 @@ public static class Buildings
         if (d.needsFertility && st.fertility <= 0f) return "Nothing will grow here";
         if (Total(st, d.type) >= d.maxPerBody)
             return d.maxPerBody == 1 ? "Already built or queued" : "Limit reached (" + d.maxPerBody + ")";
-        if (d.slotCost > 0 && SlotsUsed(st) + d.slotCost > st.slots) return "No free building slots";
         if (st.queue.Count >= MaxQueue) return "Build queue is full";
+
+        int ahead = Total(st, d.type);
         foreach (var c in d.cost)
-            if (!st.stock.Has(c.type, c.amount))
-                return "Needs " + Mathf.CeilToInt(c.amount - st.stock.Get(c.type)) + " more " + ResourceInfo.Name(c.type);
+        {
+            float amt = ScaledCost(d, c.amount, ahead);
+            if (!st.stock.Has(c.type, amt))
+                return "Needs " + Mathf.CeilToInt(amt - st.stock.Get(c.type)) + " more " + ResourceInfo.Name(c.type);
+        }
         return null;
     }
 
-    /// <summary>Pays the cost from this body's own stockpile and queues the building.</summary>
+    /// <summary>Pays the (scaled) cost from this body's own stockpile and queues the building.</summary>
     public static bool TryQueue(BodyState st, BuildingType t, out string reason)
     {
         var d = Def(t);
         reason = CanBuild(st, d);
         if (reason != null) return false;
-        foreach (var c in d.cost) st.stock.TryRemove(c.type, c.amount);
+        int ahead = Total(st, t);
+        foreach (var c in d.cost) st.stock.TryRemove(c.type, ScaledCost(d, c.amount, ahead));
         st.queue.Add(new BuildJob { type = t, remaining = d.buildTime });
         return true;
     }
 
-    /// <summary>Removes a queued job and refunds its full cost.</summary>
+    /// <summary>Removes a queued job and refunds exactly what it cost when it was queued.</summary>
     public static void Cancel(BodyState st, int index)
     {
         if (index < 0 || index >= st.queue.Count) return;
-        foreach (var c in Def(st.queue[index].type).cost) st.stock.Add(c.type, c.amount);
+        var job = st.queue[index];
+        var d = Def(job.type);
+
+        // copies "ahead" of this job = finished ones + earlier queued ones of the same type
+        int ahead = st.Built(job.type);
+        for (int i = 0; i < index; i++) if (st.queue[i].type == job.type) ahead++;
+
+        foreach (var c in d.cost) st.stock.Add(c.type, ScaledCost(d, c.amount, ahead));
         st.queue.RemoveAt(index);
     }
 
@@ -167,12 +197,14 @@ public static class Buildings
     public static string CostText(BodyState st, BuildingDef d)
     {
         var sb = new StringBuilder();
+        int ahead = Total(st, d.type);
         for (int i = 0; i < d.cost.Length; i++)
         {
             var c = d.cost[i];
+            float amt = ScaledCost(d, c.amount, ahead);
             if (i > 0) sb.Append("  ");
-            bool ok = st.stock.Has(c.type, c.amount);
-            sb.Append(ok ? "" : "<color=#ff7777>").Append(c.amount.ToString("0")).Append(' ')
+            bool ok = st.stock.Has(c.type, amt);
+            sb.Append(ok ? "" : "<color=#ff7777>").Append(amt.ToString("0")).Append(' ')
               .Append(ResourceInfo.Name(c.type)).Append(ok ? "" : "</color>");
         }
         return sb.ToString();
@@ -188,14 +220,19 @@ public static class Buildings
         if (d.power < 0f) parts.Add("uses " + (-d.power).ToString("0.#") + " energy");
         if (d.gasBurn > 0f) parts.Add("burns " + d.gasBurn.ToString("0.##") + " Gas/s");
         if (d.batteryCapacity > 0f) parts.Add("stores " + d.batteryCapacity.ToString("0") + " energy");
+        if (d.workers > 0f) parts.Add(d.workers.ToString("0") + " workers");
+        if (d.diminish < 0.999f && Total(st, d.type) > 0)
+            parts.Add("next one +" + Mathf.RoundToInt(Mathf.Pow(d.diminish, Total(st, d.type)) * 100f) + "%");
         return parts.Count > 0 ? string.Join("  -  ", parts) : d.description;
     }
 
-    /// <summary>Rich text for the info panel: slots, finished buildings, construction and ship production.</summary>
+    /// <summary>Rich text for the info panel: workers, finished buildings, construction and ship production.</summary>
     public static string Describe(BodyState st)
     {
         var sb = new StringBuilder();
-        sb.AppendLine("Slots: " + SlotsUsed(st) + " / " + st.slots);
+        sb.AppendLine("Workers: " + st.population.ToString("0") + " pop / " + st.workersNeeded.ToString("0") +
+                      " needed" + (st.staffing < 0.999f
+                          ? "  <color=#ff7777>STAFFING " + Mathf.RoundToInt(st.staffing * 100f) + "%</color>" : ""));
 
         bool any = false;
         for (int i = 0; i < Count; i++)
@@ -208,8 +245,9 @@ public static class Buildings
             if (d.hasOutput)
             {
                 bool dry = d.extractsDeposit && st.Deposit(d.output) <= 0f;
+                float shown = EffectiveRate(st, d) * EffectiveCount(d, n) * st.staffing;
                 sb.Append("  <color=#888888>")
-                  .Append(dry ? "depleted" : "+" + (EffectiveRate(st, d) * n).ToString("0.0") + "/s " + ResourceInfo.Name(d.output))
+                  .Append(dry ? "depleted" : "+" + shown.ToString("0.0") + "/s " + ResourceInfo.Name(d.output))
                   .Append("</color>");
             }
             sb.AppendLine();

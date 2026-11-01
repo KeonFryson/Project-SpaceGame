@@ -5,8 +5,8 @@ using UnityEngine.InputSystem;
 
 /// <summary>
 /// Owns the ship VIEWS. The ship DATA lives in GameState.Ships. Spawns the views for the loaded
-/// system, adds ships when a Shipyard finishes one, and turns right-click into orders
-/// (move to a point, or dock at a body). Created by RTSBootstrap.
+/// system, adds ships when a Shipyard finishes one, and turns right-click into orders for ALL
+/// selected ships (move to a point in a loose grid, or dock at a body). Created by RTSBootstrap.
 /// </summary>
 public class ShipManager : MonoBehaviour
 {
@@ -116,22 +116,37 @@ public class ShipManager : MonoBehaviour
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
 
         var sel = SelectionManager.Instance;
-        var ship = sel != null ? sel.Selected as Ship : null;
-        if (ship == null) return;
+        if (sel == null || sel.SelectedShips.Count == 0) return;
 
         if (cam == null) cam = Camera.main;
         if (cam == null) return;
         Vector2 world = cam.ScreenToWorldPoint(mouse.position.ReadValue());
 
+        var group = new List<Ship>(sel.SelectedShips.Count);
+        foreach (var s in sel.SelectedShips) if (s != null) group.Add(s);
+        if (group.Count == 0) return;
+
         var body = PickBody(world);
         if (body != null)
         {
             if (body.data.type == PlanetType.Star) { ToastUI.Show("Ships can't dock at a star"); return; }
-            ship.OrderDock(body);
+            foreach (var s in group) s.OrderDock(body);
         }
         else
         {
-            ship.OrderMove(world);
+            // spread the group into a loose grid around the click so ships don't stack
+            int n = group.Count;
+            int cols = Mathf.CeilToInt(Mathf.Sqrt(n));
+            int rows = Mathf.CeilToInt(n / (float)cols);
+            float spacing = Mathf.Max(1.5f, cam.orthographicSize * 0.05f);
+
+            for (int i = 0; i < n; i++)
+            {
+                Vector2 off = n == 1 ? Vector2.zero : new Vector2(
+                    (i % cols - (cols - 1) * 0.5f) * spacing,
+                    (i / cols - (rows - 1) * 0.5f) * spacing);
+                group[i].OrderMove(world + off);
+            }
         }
     }
 

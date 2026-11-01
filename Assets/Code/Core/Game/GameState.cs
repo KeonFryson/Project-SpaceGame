@@ -176,7 +176,7 @@ public class GameState : MonoBehaviour
                 isHome = st.isHome,
                 stockCapacity = st.stock.capacity,
                 stock = new float[ResourceInfo.Count],
-                slots = st.slots,
+                slots = st.slots,                       // legacy, always 0 now; kept so the save format is unchanged
                 buildings = (int[])st.buildings.Clone(),
                 solar = st.solar,
                 battery = st.battery,
@@ -220,8 +220,8 @@ public class GameState : MonoBehaviour
             st.LoadQueue(b.queueTypes, b.queueRemaining);
             st.LoadShipQueue(b.shipQueueTypes, b.shipQueueRemaining);
 
-            // older saves lack slots / solar (and the slot formula changed in v3): regenerate them
-            if (d.version < 3 || st.slots <= 0 || st.solar <= 0f) FixLegacy(galaxy, b, st);
+            // older saves lack solar: regenerate it. (Slots no longer exist, so they are no longer checked.)
+            if (d.version < 3 || st.solar <= 0f) FixLegacy(galaxy, b, st);
 
             bodies[BodyState.Key(b.systemId, b.bodyIndex)] = st;
             if (st.owned) owned.Add(st);
@@ -240,7 +240,6 @@ public class GameState : MonoBehaviour
 
     static void FixLegacy(GalaxyData g, BodySave b, BodyState st)
     {
-        st.slots = 4;
         st.solar = 1f;
         if (b.systemId < 0 || b.systemId >= g.systems.Count) return;
 
@@ -248,7 +247,6 @@ public class GameState : MonoBehaviour
         var sd = SolarSystemGenerator.Generate(info.seed, info.id, info.position);
         if (b.bodyIndex < 0 || b.bodyIndex >= sd.bodies.Count) return;
 
-        st.slots = Buildings.SlotsFor(sd.bodies[b.bodyIndex].diameter);
         st.solar = ResourceGenerator.SolarFor(sd, b.bodyIndex);
     }
 

@@ -25,7 +25,7 @@ public class BuildPanelUI : MonoBehaviour
     readonly List<ItemRow> items = new List<ItemRow>();
     readonly List<QueueRow> queueRows = new List<QueueRow>();
     GameObject panel;
-    TMP_Text title, slotsLabel, queueHeading;
+    TMP_Text title, slotsLabel, queueHeading;   // slotsLabel now shows population / workers
     GalaxyManager galaxy;
     BodyState current;
     string currentName;
@@ -78,8 +78,12 @@ public class BuildPanelUI : MonoBehaviour
         if (!show) return;
 
         title.text = "Build  -  " + currentName;
-        slotsLabel.text = "Slots: " + Buildings.SlotsUsed(current) + " / " + current.slots +
-                          "   <color=#888888>(Hub uses none)</color>";
+        slotsLabel.text = "Pop " + current.population.ToString("0") + " / " +
+                          (current.Built(BuildingType.ColonyHub) * Colony.HousingPerHub).ToString("0") +
+                          "   Workers " + current.workersNeeded.ToString("0") +
+                          (current.staffing < 0.999f
+                              ? "   <color=#ff7777>staffing " + Mathf.RoundToInt(current.staffing * 100f) + "%</color>"
+                              : "   <color=#888888>fully staffed</color>");
 
         foreach (var row in items)
         {
@@ -184,7 +188,7 @@ public class BuildPanelUI : MonoBehaviour
 
         title = NewText(rt, "Title", 20, TextAlignmentOptions.MidlineLeft, FontStyles.Bold, 12f);
         Height(title.gameObject, 28f);
-        slotsLabel = NewText(rt, "Slots", 13, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 9f);
+        slotsLabel = NewText(rt, "Workers", 13, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 9f);
         Height(slotsLabel.gameObject, 18f);
 
         foreach (var def in Buildings.Defs) items.Add(MakeItemRow(rt, def, null));

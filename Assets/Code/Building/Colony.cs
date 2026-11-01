@@ -5,7 +5,10 @@ using UnityEngine;
 /// Per-location power grid and population. Energy is local: it is never carried by ships.
 /// Brownout: when demand exceeds supply (and the batteries are empty) ALL production on that
 /// body slows in proportion (BodyState.efficiency). Nothing stops outright.
-/// Population is deliberately simple: it eats Food, grows when fed, and starves when not.
+/// Staffing works the same way: if there are fewer people than the buildings need, ALL production
+/// slows in proportion (BodyState.staffing).
+/// Population eats Food, grows when fed (faster the bigger it is), and starves when not.
+/// Housing (Colony Hubs) is the real cap on how much you can run.
 /// </summary>
 public static class Colony
 {
@@ -13,7 +16,8 @@ public static class Colony
     public const float HousingPerHub = 100f;
     public const float StartPopulation = 20f;
     public const float FoodPerPerson = 0.02f;      // Food per person per second
-    public const float GrowthPerSec = 0.1f;        // people per second while fed
+    public const float GrowthBase = 0.2f;          // people per second while fed
+    public const float GrowthPerPerson = 0.01f;    // extra people per second, per person already there
     public const float DeclinePerSec = 0.2f;       // people per second while starving
     public const float MinPopulation = 1f;
     public const float StarvationOutput = 0.5f;    // output multiplier while starving
@@ -26,7 +30,7 @@ public static class Colony
         return cap;
     }
 
-    /// <summary>Updates energy, efficiency, batteries, Food and population. dt &gt; 0.</summary>
+    /// <summary>Updates energy, efficiency, batteries, Food, population and staffing. dt &gt; 0.</summary>
     public static void Tick(BodyState st, float dt)
     {
         // ---------------- power
@@ -77,9 +81,21 @@ public static class Colony
         }
         st.efficiency = Mathf.Clamp01(eff);
 
+        // ---------------- workers needed
+        float workersNeeded = 0f;
+        for (int i = 0; i < Buildings.Count; i++)
+            workersNeeded += Buildings.Defs[i].workers * st.buildings[i];
+        st.workersNeeded = workersNeeded;
+
         // ---------------- population
         int hubs = st.Built(BuildingType.ColonyHub);
-        if (hubs == 0) { st.population = 0f; st.starving = false; return; }
+        if (hubs == 0)
+        {
+            st.population = 0f;
+            st.starving = false;
+            st.staffing = 1f;
+            return;
+        }
 
         float housing = hubs * HousingPerHub;
         if (st.population <= 0f) st.population = StartPopulation;
@@ -91,7 +107,10 @@ public static class Colony
             st.stock.Remove(ResourceType.Food, eat);
             st.starving = false;
             if (st.population < housing)
-                st.population = Mathf.Min(housing, st.population + GrowthPerSec * dt);
+            {
+                float growth = GrowthBase + st.population * GrowthPerPerson;
+                st.population = Mathf.Min(housing, st.population + growth * dt);
+            }
         }
         else
         {
@@ -99,11 +118,14 @@ public static class Colony
             st.starving = true;
             st.population = Mathf.Max(MinPopulation, st.population - DeclinePerSec * dt);
         }
+
+        // ---------------- staffing
+        st.staffing = workersNeeded > 0f ? Mathf.Clamp01(st.population / workersNeeded) : 1f;
     }
 
-    /// <summary>Output multiplier from brownout and starvation.</summary>
+    /// <summary>Output multiplier from brownout, staffing and starvation.</summary>
     public static float OutputMultiplier(BodyState st) =>
-        st.efficiency * (st.starving ? StarvationOutput : 1f);
+        st.efficiency * st.staffing * (st.starving ? StarvationOutput : 1f);
 
     public static string Describe(BodyState st)
     {

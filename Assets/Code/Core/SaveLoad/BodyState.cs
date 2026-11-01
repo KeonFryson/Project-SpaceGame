@@ -21,7 +21,7 @@ public class BodyState
     public readonly ResourceStock stock = new ResourceStock();
 
     // ---- buildings
-    public int slots;                                                   // from body size
+    public int slots;                                                   // LEGACY: unused now, kept so old saves still load
     public readonly int[] buildings = new int[Buildings.Count];        // finished, indexed by (int)BuildingType
     public readonly List<BuildJob> queue = new List<BuildJob>();       // front = being built
     public readonly List<ShipJob> shipQueue = new List<ShipJob>();     // front = being built (needs a Shipyard)
@@ -32,6 +32,7 @@ public class BodyState
     public float population;           // saved
     // recomputed every tick, NOT saved
     public float energyMade, energyUsed, efficiency = 1f;
+    public float workersNeeded, staffing = 1f;
     public bool starving;
 
     public BodyState(int systemId, int bodyIndex)

@@ -102,7 +102,15 @@ public class ShipPanelUI : MonoBehaviour
 
     // ------------------------------------------------------------------ actions
 
-    void OnStop() { if (ship != null) ship.OrderStop(); }
+    void OnStop()
+    {
+        var sel = SelectionManager.Instance;
+        if (sel != null && sel.SelectedShips.Count > 0)
+        {
+            foreach (var s in sel.SelectedShips) if (s != null) s.OrderStop();
+        }
+        else if (ship != null) ship.OrderStop();
+    }
 
     void OnRefuel()
     {
