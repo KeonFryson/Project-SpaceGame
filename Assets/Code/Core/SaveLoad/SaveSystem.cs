@@ -44,9 +44,6 @@ public class SaveData
     public float camX, camY, camZ, orthoSize;
 
     public List<BodySave> bodies = new List<BodySave>();
-
-    // v3: ships
-    public int nextShipId;
 }
 
 /// <summary>JSON files in persistentDataPath/Saves. Slot 0 = autosave, 1..SlotCount = manual slots.</summary>

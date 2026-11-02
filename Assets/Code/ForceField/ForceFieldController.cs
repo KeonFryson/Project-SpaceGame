@@ -16,6 +16,7 @@ public class ForceFieldController : MonoBehaviour
     const float FullCircleRadians = Mathf.PI * 2f;
     const float DefaultSpriteHalfExtent = 0.5f;     // used when there is no sprite assigned
 
+
     [Header("Look (overrides the material when assigned)")]
     [ColorUsage(true, true)] public Color fieldColor = new Color(0.2f, 0.8f, 2f, 1f);
     [ColorUsage(true, true)] public Color outlineColor = new Color(0.5f, 1f, 3f, 1f);
