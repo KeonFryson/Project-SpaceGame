@@ -85,7 +85,7 @@ public static class Buildings
             hasOutput = true, output = ResourceType.Minerals, rate = 2f, extractsDeposit = true },
 
         new BuildingDef { type = BuildingType.RareMetalMine, name = "Rare Metal Mine", description = "Mines Rare Metals (slow).",
-            cost = new[] { M(250f), R(40f) }, buildTime = 25f, power = -4f,
+            cost = new[] { M(500f) }, buildTime = 25f, power = -4f,
             workers = 15f, diminish = 0.88f,
             hasOutput = true, output = ResourceType.RareMetals, rate = 0.4f, extractsDeposit = true },
 
