@@ -24,10 +24,6 @@ public class GameState : MonoBehaviour
     readonly List<BodyState> owned = new List<BodyState>();
     public IReadOnlyList<BodyState> Owned => owned;
 
-    /// <summary>Every ship in the galaxy. Ships in systems that aren't loaded are frozen.</summary>
-    public readonly List<ShipData> Ships = new List<ShipData>();
-    int nextShipId;
-    public int NextShipId => nextShipId;
 
     void Awake() => Instance = this;
 
@@ -39,8 +35,6 @@ public class GameState : MonoBehaviour
         Galaxy = galaxy;
         bodies.Clear();
         owned.Clear();
-        Ships.Clear();
-        nextShipId = 0;
         ResearchData = 0f;
 
         FindHome(galaxy, out int sys, out int body);
@@ -130,27 +124,7 @@ public class GameState : MonoBehaviour
         owned.Add(st);
     }
 
-    /// <summary>Adds a freshly built ship, docked at the given body, with 40% fuel.</summary>
-    public ShipData AddShip(ShipClass cls, int systemId, int bodyIndex, Vector2 dockOffset)
-    {
-        var def = ShipDefs.Get(cls);
-        int id = nextShipId++;
-        var s = new ShipData
-        {
-            id = id,
-            cls = (int)cls,
-            name = def.name + " " + (id + 1),
-            systemId = systemId,
-            fuel = def.fuelTank * ShipDefs.LaunchFuel,
-            mode = ShipData.Docked,
-            dockedBody = bodyIndex,
-            dockOffset = dockOffset
-        };
-        s.EnsureCargo();
-        Ships.Add(s);
-        return s;
-    }
-
+   
     // ------------------------------------------------------------------ save / load
 
     public void ExportSave(SaveData d)
@@ -158,8 +132,6 @@ public class GameState : MonoBehaviour
         d.homeSystemId = HomeSystemId;
         d.homeBodyIndex = HomeBodyIndex;
         d.researchData = ResearchData;
-        d.ships = new List<ShipData>(Ships);
-        d.nextShipId = nextShipId;
         d.bodies = new List<BodySave>(bodies.Count);
 
         foreach (var st in bodies.Values)
@@ -184,7 +156,6 @@ public class GameState : MonoBehaviour
             };
             for (int i = 0; i < ResourceInfo.Count; i++) b.stock[i] = st.stock.Get((ResourceType)i);
             st.ExportQueue(out b.queueTypes, out b.queueRemaining);
-            st.ExportShipQueue(out b.shipQueueTypes, out b.shipQueueRemaining);
             d.bodies.Add(b);
         }
     }
@@ -218,7 +189,6 @@ public class GameState : MonoBehaviour
             st.population = b.population;
             st.LoadBuildings(b.buildings);
             st.LoadQueue(b.queueTypes, b.queueRemaining);
-            st.LoadShipQueue(b.shipQueueTypes, b.shipQueueRemaining);
 
             // older saves lack solar: regenerate it. (Slots no longer exist, so they are no longer checked.)
             if (d.version < 3 || st.solar <= 0f) FixLegacy(galaxy, b, st);
@@ -232,10 +202,6 @@ public class GameState : MonoBehaviour
             && home.Built(BuildingType.ColonyHub) == 0)
             home.buildings[(int)BuildingType.ColonyHub] = 1;
 
-        Ships.Clear();
-        if (d.ships != null)
-            foreach (var s in d.ships) { s.EnsureCargo(); Ships.Add(s); }
-        nextShipId = d.nextShipId;
     }
 
     static void FixLegacy(GalaxyData g, BodySave b, BodyState st)

@@ -32,18 +32,15 @@ public class ToastUI : MonoBehaviour
         instance = this;
         Build(safe);
         EconomySystem.BuildingCompleted += OnBuilt;     // static events: removed in OnDestroy
-        EconomySystem.ShipCompleted += OnShip;
     }
 
     void OnDestroy()
     {
         EconomySystem.BuildingCompleted -= OnBuilt;
-        EconomySystem.ShipCompleted -= OnShip;
         if (instance == this) instance = null;
     }
 
     void OnBuilt(BodyState st, BuildingType t) => Display(Buildings.Def(t).name + " complete");
-    void OnShip(BodyState st, ShipClass c) => Display(ShipDefs.Get(c).name + " built");
 
     void Display(string message)
     {

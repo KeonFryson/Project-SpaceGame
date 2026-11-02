@@ -261,13 +261,6 @@ public static class Buildings
                 sb.AppendLine(Def(st.queue[i].type).name + "  <color=#888888>" +
                               (i == 0 ? Mathf.CeilToInt(st.queue[i].remaining) + "s left" : "waiting") + "</color>");
         }
-        if (st.shipQueue.Count > 0)
-        {
-            sb.AppendLine("<color=#ffcc55>Ship production</color>");
-            for (int i = 0; i < st.shipQueue.Count; i++)
-                sb.AppendLine(ShipDefs.Get(st.shipQueue[i].cls).name + "  <color=#888888>" +
-                              (i == 0 ? Mathf.CeilToInt(st.shipQueue[i].remaining) + "s left" : "waiting") + "</color>");
-        }
         return sb.ToString();
     }
 }

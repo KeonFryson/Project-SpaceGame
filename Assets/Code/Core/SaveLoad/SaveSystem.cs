@@ -19,8 +19,6 @@ public class BodySave
 
     // v3: power, population, ship production
     public float solar, battery, population;
-    public int[] shipQueueTypes;
-    public float[] shipQueueRemaining;
 }
 
 [Serializable]
@@ -48,7 +46,6 @@ public class SaveData
     public List<BodySave> bodies = new List<BodySave>();
 
     // v3: ships
-    public List<ShipData> ships = new List<ShipData>();
     public int nextShipId;
 }
 

@@ -24,7 +24,6 @@ public class BodyState
     public int slots;                                                   // LEGACY: unused now, kept so old saves still load
     public readonly int[] buildings = new int[Buildings.Count];        // finished, indexed by (int)BuildingType
     public readonly List<BuildJob> queue = new List<BuildJob>();       // front = being built
-    public readonly List<ShipJob> shipQueue = new List<ShipJob>();     // front = being built (needs a Shipyard)
 
     // ---- power and population
     public float solar = 1f;           // solar output multiplier (star class and orbit distance)
@@ -89,16 +88,6 @@ public class BodyState
         }
     }
 
-    public void ExportShipQueue(out int[] types, out float[] remaining)
-    {
-        types = new int[shipQueue.Count];
-        remaining = new float[shipQueue.Count];
-        for (int i = 0; i < shipQueue.Count; i++)
-        {
-            types[i] = (int)shipQueue[i].cls;
-            remaining[i] = shipQueue[i].remaining;
-        }
-    }
 
     public void LoadBuildings(int[] src)
     {
@@ -116,13 +105,4 @@ public class BodyState
                 queue.Add(new BuildJob { type = (BuildingType)types[i], remaining = remaining[i] });
     }
 
-    public void LoadShipQueue(int[] types, float[] remaining)
-    {
-        shipQueue.Clear();
-        if (types == null || remaining == null) return;
-        int n = System.Math.Min(types.Length, remaining.Length);
-        for (int i = 0; i < n; i++)
-            if (types[i] >= 0 && types[i] < ShipDefs.Count)
-                shipQueue.Add(new ShipJob { cls = (ShipClass)types[i], remaining = remaining[i] });
-    }
 }

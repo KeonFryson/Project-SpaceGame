@@ -9,7 +9,6 @@ using UnityEngine;
 public class EconomySystem : MonoBehaviour
 {
     public static event Action<BodyState, BuildingType> BuildingCompleted;
-    public static event Action<BodyState, ShipClass> ShipCompleted;
 
     void Update()
     {
@@ -42,17 +41,6 @@ public class EconomySystem : MonoBehaviour
         // 2. power, batteries, Food, population, staffing
         Colony.Tick(st, dt);
 
-        // 3. ship production (slowed by brownouts and by missing crew)
-        if (st.shipQueue.Count > 0 && st.Built(BuildingType.Shipyard) > 0)
-        {
-            var job = st.shipQueue[0];
-            job.remaining -= dt * st.efficiency * st.staffing;
-            if (job.remaining <= 0f)
-            {
-                st.shipQueue.RemoveAt(0);
-                ShipCompleted?.Invoke(st, job.cls);
-            }
-        }
 
         // 4. resource production
         float mult = Colony.OutputMultiplier(st);

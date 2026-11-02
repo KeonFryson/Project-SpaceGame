@@ -7,26 +7,27 @@ using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 /// <summary>
-/// Right-hand build panel for the selected OWNED planet / moon. Drop-in replacement for the old BuildPanelUI.
+/// Right-hand build panel for the selected OWNED planet / moon.
 ///
 ///  - Status summary: energy, population / staffing, battery, and a stockpile with net rates per second.
-///  - Tabs: Economy / Power / Colony / Ships. Ships has sub-tabs by role (Support / Combat / Capital) with
-///    buildable counts, a yard requirement line, and locked tabs shown muted.
+///  - Tabs: Economy / Power / Colony.
 ///  - One-line rows: cost chips coloured by resource (red + missing amount when short), owned count,
 ///    a "*" suggestion marker. Everything else is in a hover tooltip (impact preview, warnings, totals).
 ///  - Rows are sorted (ready, short on resources, queue full, locked). Buildings that can never work on
 ///    this body (no deposit, nothing grows) live in a collapsed "Unavailable here" fold.
 ///  - Disabled rows stay clickable: clicking explains why in a toast.
-///  - Queue: only existing rows, total time, reorder waiting jobs, refund preview, x1 / x5 / Max amount,
+///  - Queue: total time, reorder waiting jobs, refund preview, x1 / x5 / Max amount,
 ///    "All planets" (apply to every owned body in this system), Starter pack template.
-///  - Hotkeys: Tab / Shift+Tab = main tabs, Comma / Period = ship sub-tabs, Numpad 1-9 = first nine rows.
+///  - Hotkeys: Tab / Shift+Tab = tabs, Numpad 1-9 = first nine rows.
 ///  - Row flash when something finishes. Panel collapses to its header.
-/// Lives under RTSUI's canvas. Created by RTSBootstrap after RTSUI (same as before).
+/// Lives under RTSUI's canvas. Created by RTSBootstrap after RTSUI.
 /// </summary>
 public class BuildPanelUI : MonoBehaviour
 {
-    enum Tab { Economy, Power, Colony, Ships }
+    enum Tab { Economy, Power, Colony }
     enum Kind { Ready, Short, Wait, Locked }
+
+    const int TabCount = 3;
 
     sealed class ItemRow
     {
@@ -35,7 +36,6 @@ public class BuildPanelUI : MonoBehaviour
         public TMP_Text label;
         public Image flashImg;
         public BuildingDef building;
-        public ShipDef ship;
         public float flash;
         // per refresh
         public string reason;
@@ -50,7 +50,6 @@ public class BuildPanelUI : MonoBehaviour
         public TMP_Text label;
         public UITheme.Bar bar;
         public Button up, down, cancel;
-        public bool isShip;
         public int index;
     }
 
@@ -58,10 +57,10 @@ public class BuildPanelUI : MonoBehaviour
     const float ListMax = 360f;
     const float RowSpacing = 3f;
     const float FlashTime = 1.5f;
+    const float RowH = 32f;
 
     static readonly int[] QtySteps = { 1, 5, 99 };
-    static readonly string[] TabNames = { "Economy", "Power", "Colony", "Ships" };
-    static readonly ShipRole[] Roles = { ShipRole.Support, ShipRole.Combat, ShipRole.Capital };
+    static readonly string[] TabNames = { "Economy", "Power", "Colony" };
     static readonly string[] FilterNames = { "Show: all", "Show: affordable", "Show: hide locked" };
     static readonly BuildingType[] StarterPack =
     {
@@ -78,14 +77,12 @@ public class BuildPanelUI : MonoBehaviour
     readonly List<QueueRow> queueRows = new List<QueueRow>();
     GameObject panel, body, tipBox;
     TMP_Text title, qtyLabel, collapseLabel, energyLabel, popLabel, batteryLabel, stockLabel;
-    TMP_Text shipHeader, foldLabel, emptyNote, queueHeading, tipText;
+    TMP_Text foldLabel, emptyNote, queueHeading, tipText;
     TMP_Text applyAllLabel, filterLabel;
     UITheme.Bar energyBar, popBar, batteryBar;
-    Button[] tabBtns = new Button[4];
-    TMP_Text[] tabLabels = new TMP_Text[4];
-    Button[] roleBtns = new Button[3];
-    TMP_Text[] roleLabels = new TMP_Text[3];
-    GameObject subTabsRoot, foldBtn;
+    Button[] tabBtns = new Button[TabCount];
+    TMP_Text[] tabLabels = new TMP_Text[TabCount];
+    GameObject foldBtn;
     LayoutElement listLE;
     ScrollRect scroll;
 
@@ -95,14 +92,12 @@ public class BuildPanelUI : MonoBehaviour
     string currentName;
     float timer;
     Tab tab = Tab.Economy;
-    int roleIdx;
     int qtyIdx;
     int filter;
     bool collapsed, foldOpen, applyAll;
     bool hasSuggest;
     BuildingType suggestType;
     string suggestWhy;
-    readonly int[] shipsOwned = new int[ShipDefs.Count];
     readonly List<ItemRow> avail = new List<ItemRow>();
     readonly List<ItemRow> unavail = new List<ItemRow>();
     readonly List<ItemRow> hotkeyRows = new List<ItemRow>();
@@ -124,14 +119,12 @@ public class BuildPanelUI : MonoBehaviour
             return;
         }
         Build(safe);
-        EconomySystem.BuildingCompleted += OnBuilt;      // static events: removed in OnDestroy
-        EconomySystem.ShipCompleted += OnShipDone;
+        EconomySystem.BuildingCompleted += OnBuilt;      // static event: removed in OnDestroy
     }
 
     void OnDestroy()
     {
         EconomySystem.BuildingCompleted -= OnBuilt;
-        EconomySystem.ShipCompleted -= OnShipDone;
     }
 
     void Update()
@@ -164,12 +157,7 @@ public class BuildPanelUI : MonoBehaviour
         if (kb == null) return;
 
         bool shift = kb.leftShiftKey.isPressed || kb.rightShiftKey.isPressed;
-        if (kb.tabKey.wasPressedThisFrame) SetTab((Tab)(((int)tab + (shift ? 3 : 1)) % 4));
-        if (tab == Tab.Ships)
-        {
-            if (kb.periodKey.wasPressedThisFrame) SetRole((roleIdx + 1) % 3);
-            if (kb.commaKey.wasPressedThisFrame) SetRole((roleIdx + 2) % 3);
-        }
+        if (kb.tabKey.wasPressedThisFrame) SetTab((Tab)(((int)tab + (shift ? TabCount - 1 : 1)) % TabCount));
         if (collapsed) return;
 
         for (int i = 0; i < 9 && i < hotkeyRows.Count; i++)
@@ -185,14 +173,7 @@ public class BuildPanelUI : MonoBehaviour
 
         if (st != current) return;
         foreach (var r in items)
-            if (r.building != null && r.building.type == t) r.flash = FlashTime;
-    }
-
-    void OnShipDone(BodyState st, ShipClass c)
-    {
-        if (st != current) return;
-        foreach (var r in items)
-            if (r.ship != null && r.ship.cls == c) r.flash = FlashTime;
+            if (r.building.type == t) r.flash = FlashTime;
     }
 
     // ------------------------------------------------------------------ rules helpers
@@ -209,8 +190,7 @@ public class BuildPanelUI : MonoBehaviour
             case BuildingType.SolarCollector:
             case BuildingType.PowerPlant:
             case BuildingType.BatteryBank: return Tab.Power;
-            case BuildingType.ColonyHub: return Tab.Colony;
-            default: return Tab.Ships;   // Shipyard
+            default: return Tab.Colony;   // ColonyHub, and anything new until you give it a tab
         }
     }
 
@@ -220,12 +200,9 @@ public class BuildPanelUI : MonoBehaviour
         {
             case Tab.Economy: return "E0B060";
             case Tab.Power: return "FFE659";
-            case Tab.Colony: return "7DFF9B";
-            default: return "4DD9C8";
+            default: return "7DFF9B";
         }
     }
-
-    static string RoleHex(ShipRole r) => r == ShipRole.Combat ? "F24D4D" : r == ShipRole.Capital ? "FFCC40" : "40D9C7";
 
     static string ShortName(ResourceType t)
     {
@@ -257,7 +234,7 @@ public class BuildPanelUI : MonoBehaviour
     {
         if (reason == null) return Kind.Ready;
         if (reason.Contains(" more ")) return Kind.Short;
-        if (reason == "Build queue is full" || reason == "Ship queue is full") return Kind.Wait;
+        if (reason == "Build queue is full") return Kind.Wait;
         return Kind.Locked;
     }
 
@@ -297,7 +274,6 @@ public class BuildPanelUI : MonoBehaviour
     {
         type = BuildingType.ColonyHub;
         why = null;
-        var gs = GameState.Instance;
         int hubs = st.Built(BuildingType.ColonyHub);
 
         if (hubs == 0)
@@ -322,13 +298,6 @@ public class BuildPanelUI : MonoBehaviour
         {
             type = BuildingType.ColonyHub;
             why = "Population is at the housing cap";
-            return true;
-        }
-        if (st.isHome && gs != null && gs.Ships.Count == 0 && st.Built(BuildingType.Shipyard) == 0 &&
-            CanUse(st, BuildingType.Shipyard))
-        {
-            type = BuildingType.Shipyard;
-            why = "Ships haul cargo and claim new planets";
             return true;
         }
         return false;
@@ -433,9 +402,6 @@ public class BuildPanelUI : MonoBehaviour
         return sb.ToString();
     }
 
-    int RemainingSlots(BodyState st, ItemRow r) =>
-        r.building != null ? Buildings.MaxQueue - st.queue.Count : ShipDefs.MaxQueue - st.shipQueue.Count;
-
     string BuildingTip(ItemRow r)
     {
         var st = current;
@@ -452,48 +418,13 @@ public class BuildPanelUI : MonoBehaviour
         if (r.suggested) sb.AppendLine("\n" + UITheme.Tint("* Suggested: " + suggestWhy, UITheme.Warn));
         if (r.reason != null) sb.AppendLine("\n" + UITheme.Tint(r.reason, UITheme.Danger));
 
-        int n = Mathf.Min(QtySteps[qtyIdx], d.maxPerBody - Buildings.Total(st, d.type), RemainingSlots(st, r));
+        int n = Mathf.Min(QtySteps[qtyIdx], d.maxPerBody - Buildings.Total(st, d.type), Buildings.MaxQueue - st.queue.Count);
         if (n > 1)
         {
             var sums = new float[ResourceInfo.Count];
             for (int i = 0; i < n; i++)
                 foreach (var c in d.cost)
                     sums[(int)c.type] += Buildings.ScaledCost(d, c.amount, Buildings.Total(st, d.type) + i);
-            sb.AppendLine("\n<b>x" + n + " total:</b> " + PlainTotals(sums));
-        }
-        sb.Append("\n" + UITheme.Dim("Click: queue   Shift+click: x5" + HotkeyText(r)));
-        return sb.ToString();
-    }
-
-    string ShipTip(ItemRow r)
-    {
-        var st = current;
-        var d = r.ship;
-        float range = d.fuelPerUnit > 0f ? d.fuelTank / d.fuelPerUnit : 0f;
-        float costSum = 0f;
-        foreach (var c in d.cost) costSum += c.amount;
-
-        var sb = new StringBuilder();
-        sb.AppendLine("<b>" + d.name + "</b>  " + UITheme.Dim(d.role + "  -  " + d.sizeName));
-        sb.AppendLine(UITheme.Dim("Needs: ") + (d.yard == ShipYard.Shipyard ? "Shipyard" :
-                      d.yard == ShipYard.SpaceDock ? "Space Dock (planned)" : "Capital Slipway (planned)"));
-        sb.AppendLine("Cargo " + d.cargo.ToString("0") + "   Fuel tank " + d.fuelTank.ToString("0") +
-                      "   Speed " + d.speed.ToString("0"));
-        sb.AppendLine("Range " + range.ToString("0") + " units   Burn " + d.fuelPerUnit.ToString("0.00") + " per unit");
-        sb.AppendLine("Cargo per cost: " + (d.cargo / Mathf.Max(1f, costSum)).ToString("0.00") +
-                      "   Cargo-range: " + (d.cargo * range).ToString("N0"));
-        sb.AppendLine(UITheme.Dim("Build time ") + d.buildTime.ToString("0") + "s " +
-                      UITheme.Dim("(slower during brownouts / short staffing)"));
-        sb.AppendLine(UITheme.Dim("Cost: ") + ChipList(st, d.cost, null, 0));
-        sb.AppendLine(UITheme.Dim("Owned: ") + shipsOwned[(int)d.cls]);
-
-        if (r.reason != null) sb.AppendLine("\n" + UITheme.Tint(r.reason, UITheme.Danger));
-
-        int n = Mathf.Min(QtySteps[qtyIdx], RemainingSlots(st, r));
-        if (n > 1)
-        {
-            var sums = new float[ResourceInfo.Count];
-            foreach (var c in d.cost) sums[(int)c.type] += c.amount * n;
             sb.AppendLine("\n<b>x" + n + " total:</b> " + PlainTotals(sums));
         }
         sb.Append("\n" + UITheme.Dim("Click: queue   Shift+click: x5" + HotkeyText(r)));
@@ -509,22 +440,14 @@ public class BuildPanelUI : MonoBehaviour
     string RefundText(QueueRow q)
     {
         var st = current;
-        if (st == null) return "";
+        if (st == null || q.index >= st.queue.Count) return "";
+
         var sums = new float[ResourceInfo.Count];
-        if (q.isShip)
-        {
-            if (q.index >= st.shipQueue.Count) return "";
-            foreach (var c in ShipDefs.Get(st.shipQueue[q.index].cls).cost) sums[(int)c.type] += c.amount;
-        }
-        else
-        {
-            if (q.index >= st.queue.Count) return "";
-            var job = st.queue[q.index];
-            var d = Buildings.Def(job.type);
-            int ahead = st.Built(job.type);
-            for (int i = 0; i < q.index; i++) if (st.queue[i].type == job.type) ahead++;
-            foreach (var c in d.cost) sums[(int)c.type] += Buildings.ScaledCost(d, c.amount, ahead);
-        }
+        var job = st.queue[q.index];
+        var d = Buildings.Def(job.type);
+        int ahead = st.Built(job.type);
+        for (int i = 0; i < q.index; i++) if (st.queue[i].type == job.type) ahead++;
+        foreach (var c in d.cost) sums[(int)c.type] += Buildings.ScaledCost(d, c.amount, ahead);
         return "<b>Cancel</b> and refund: " + PlainTotals(sums);
     }
 
@@ -574,11 +497,6 @@ public class BuildPanelUI : MonoBehaviour
         if (collapsed) { HideTip(); hotkeyRows.Clear(); return; }
 
         hasSuggest = Suggest(current, out suggestType, out suggestWhy);
-        System.Array.Clear(shipsOwned, 0, shipsOwned.Length);
-        var gs = GameState.Instance;
-        if (gs != null)
-            foreach (var s in gs.Ships)
-                if (s.cls >= 0 && s.cls < shipsOwned.Length) shipsOwned[s.cls]++;
 
         RefreshSummary();
         RefreshTabs();
@@ -628,46 +546,7 @@ public class BuildPanelUI : MonoBehaviour
 
     void RefreshTabs()
     {
-        for (int i = 0; i < 4; i++) UITheme.SetActive(tabBtns[i], i == (int)tab);
-        tabLabels[3].text = current.shipQueue.Count > 0 ? "Ships (" + current.shipQueue.Count + ")" : "Ships";
-
-        bool ships = tab == Tab.Ships;
-        subTabsRoot.SetActive(ships);
-        shipHeader.gameObject.SetActive(ships);
-        if (!ships) return;
-
-        for (int i = 0; i < 3; i++)
-        {
-            int ok = 0, total = 0, inQueue = 0;
-            foreach (var d in ShipDefs.Defs)
-            {
-                if (d.role != Roles[i]) continue;
-                total++;
-                if (d.buildable) ok++;
-            }
-            foreach (var job in current.shipQueue)
-                if (ShipDefs.Get(job.cls).role == Roles[i]) inQueue++;
-
-            roleLabels[i].text = Roles[i] + " " + ok + "/" + total + (inQueue > 0 ? " *" : "");
-            roleLabels[i].color = ok == 0 ? UITheme.TextDim : UITheme.TextMain;
-            UITheme.SetActive(roleBtns[i], i == roleIdx);
-        }
-
-        var yards = new List<ShipYard>();
-        foreach (var d in ShipDefs.Defs)
-            if (d.role == Roles[roleIdx] && !yards.Contains(d.yard)) yards.Add(d.yard);
-
-        var sb = new StringBuilder("Yards: ");
-        for (int i = 0; i < yards.Count; i++)
-        {
-            if (i > 0) sb.Append("  -  ");
-            if (yards[i] == ShipYard.Shipyard)
-                sb.Append("Shipyard ").Append(current.Built(BuildingType.Shipyard) > 0
-                    ? UITheme.Tint("(built)", UITheme.Good) : UITheme.Tint("(build one below first)", UITheme.Danger));
-            else
-                sb.Append(yards[i] == ShipYard.SpaceDock ? "Space Dock " : "Capital Slipway ").Append(UITheme.Dim("(planned)"));
-        }
-        shipHeader.text = sb.ToString();
+        for (int i = 0; i < TabCount; i++) UITheme.SetActive(tabBtns[i], i == (int)tab);
     }
 
     void RefreshToolbar()
@@ -685,14 +564,10 @@ public class BuildPanelUI : MonoBehaviour
     {
         avail.Clear();
         unavail.Clear();
-        bool shipsTab = tab == Tab.Ships;
 
         foreach (var row in items)
         {
-            bool visible = row.building != null
-                ? TabOf(row.building.type) == tab
-                : shipsTab && row.ship.role == Roles[roleIdx];
-            if (!visible) { SetActive(row.root, false); continue; }
+            if (TabOf(row.building.type) != tab) { SetActive(row.root, false); continue; }
 
             EvaluateRow(row);
             if (row.impossible) { unavail.Add(row); continue; }
@@ -709,7 +584,7 @@ public class BuildPanelUI : MonoBehaviour
         {
             SetActive(row.root, true);
             Place(row.root, idx++);
-            h += RowHeight(row) + RowSpacing;
+            h += RowH + RowSpacing;
         }
 
         bool anyUnavail = unavail.Count > 0;
@@ -725,7 +600,7 @@ public class BuildPanelUI : MonoBehaviour
             SetActive(row.root, foldOpen);
             if (!foldOpen) continue;
             Place(row.root, idx++);
-            h += RowHeight(row) + RowSpacing;
+            h += RowH + RowSpacing;
         }
 
         bool empty = avail.Count == 0;
@@ -744,8 +619,6 @@ public class BuildPanelUI : MonoBehaviour
         listLE.preferredHeight = listLE.minHeight = height;
     }
 
-    static float RowHeight(ItemRow r) => r.building != null ? 32f : 48f;
-
     static void SetActive(GameObject go, bool on)
     {
         if (go.activeSelf != on) go.SetActive(on);
@@ -759,52 +632,21 @@ public class BuildPanelUI : MonoBehaviour
     void EvaluateRow(ItemRow r)
     {
         var st = current;
-        if (r.building != null)
-        {
-            var d = r.building;
-            r.impossible = Impossible(st, d);
-            r.reason = r.impossible ? ImpossibleText(st, d) : Buildings.CanBuild(st, d);
-            r.kind = Classify(r.reason);
-            r.suggested = hasSuggest && d.type == suggestType && r.kind != Kind.Locked;
-            r.sortKey = (int)r.kind * 100 + (int)d.type;
+        var d = r.building;
+        r.impossible = Impossible(st, d);
+        r.reason = r.impossible ? ImpossibleText(st, d) : Buildings.CanBuild(st, d);
+        r.kind = Classify(r.reason);
+        r.suggested = hasSuggest && d.type == suggestType && r.kind != Kind.Locked;
+        r.sortKey = (int)r.kind * 100 + (int)d.type;
 
-            int total = Buildings.Total(st, d.type);
-            string max = d.maxPerBody >= 99 ? "" : "/" + d.maxPerBody;
-            string left = "<color=#" + TabHex(TabOf(d.type)) + ">\u25A0</color> <b>" + d.name + "</b> " +
-                          UITheme.Dim("x" + total + max) +
-                          (r.suggested ? " " + UITheme.Tint("*", UITheme.Warn) : "");
-            string right = r.kind == Kind.Locked ? UITheme.Tint(r.reason, UITheme.Danger)
-                                                 : ChipList(st, d.cost, d, total);
-            r.label.text = left + "<pos=42%>" + right;
-        }
-        else
-        {
-            var d = r.ship;
-            r.impossible = false;
-            r.suggested = false;
-            r.reason = ShipDefs.CanBuild(st, d);
-            r.kind = Classify(r.reason);
-            r.sortKey = 10000 + (int)r.kind * 100 + (d.buildable ? 0 : 50) + (int)d.cls;
-
-            int queued = 0;
-            foreach (var job in st.shipQueue) if (job.cls == d.cls) queued++;
-            float range = d.fuelPerUnit > 0f ? d.fuelTank / d.fuelPerUnit : 0f;
-            float costSum = 0f;
-            foreach (var c in d.cost) costSum += c.amount;
-
-            string line1 = "<color=#" + RoleHex(d.role) + ">\u25A0</color> <b>" + d.name + "</b> " +
-                           UITheme.Dim("(" + shipsOwned[(int)d.cls] + ")") +
-                           (queued > 0 ? " " + UITheme.Tint("+" + queued + " building", UITheme.Good) : "") +
-                           "<pos=42%>" + (r.kind == Kind.Locked ? UITheme.Tint(r.reason, UITheme.Danger)
-                                                                  : ChipList(st, d.cost, null, 0));
-            string line2 = "<size=80%>" + UITheme.Dim("Cargo ") + d.cargo.ToString("0") +
-                           "<pos=20%>" + UITheme.Dim("Fuel ") + d.fuelTank.ToString("0") +
-                           "<pos=40%>" + UITheme.Dim("Spd ") + d.speed.ToString("0") +
-                           "<pos=57%>" + UITheme.Dim("Rng ") + range.ToString("0") +
-                           "<pos=76%>" + UITheme.Dim("C/cost ") + (d.cargo / Mathf.Max(1f, costSum)).ToString("0.00") +
-                           "</size>";
-            r.label.text = line1 + "\n" + line2;
-        }
+        int total = Buildings.Total(st, d.type);
+        string max = d.maxPerBody >= 99 ? "" : "/" + d.maxPerBody;
+        string left = "<color=#" + TabHex(TabOf(d.type)) + ">\u25A0</color> <b>" + d.name + "</b> " +
+                      UITheme.Dim("x" + total + max) +
+                      (r.suggested ? " " + UITheme.Tint("*", UITheme.Warn) : "");
+        string right = r.kind == Kind.Locked ? UITheme.Tint(r.reason, UITheme.Danger)
+                                             : ChipList(st, d.cost, d, total);
+        r.label.text = left + "<pos=42%>" + right;
 
         r.label.alpha = r.kind == Kind.Ready ? 1f : r.kind == Kind.Short ? 0.9f : r.kind == Kind.Wait ? 0.7f : 0.6f;
     }
@@ -812,41 +654,29 @@ public class BuildPanelUI : MonoBehaviour
     void RefreshQueue()
     {
         var st = current;
-        float bTime = 0f, sTime = 0f;
+        float bTime = 0f;
         foreach (var j in st.queue) bTime += j.remaining;
-        foreach (var j in st.shipQueue) sTime += j.remaining;
-        bool any = st.queue.Count + st.shipQueue.Count > 0;
+        bool any = st.queue.Count > 0;
         queueHeading.text = any
-            ? "CONSTRUCTION QUEUE  " + UITheme.Dim("buildings " + Mathf.CeilToInt(bTime) + "s   ships " + Mathf.CeilToInt(sTime) + "s")
+            ? "CONSTRUCTION QUEUE  " + UITheme.Dim("total " + Mathf.CeilToInt(bTime) + "s")
             : UITheme.Dim("CONSTRUCTION QUEUE (empty)");
 
         foreach (var q in queueRows)
         {
-            int count = q.isShip ? st.shipQueue.Count : st.queue.Count;
+            int count = st.queue.Count;
             bool has = q.index < count;
             SetActive(q.root, has);
             if (!has) continue;
 
-            string name;
-            float remaining, total;
-            if (q.isShip)
-            {
-                var job = st.shipQueue[q.index];
-                var d = ShipDefs.Get(job.cls);
-                name = d.name; remaining = job.remaining; total = d.buildTime;
-            }
-            else
-            {
-                var job = st.queue[q.index];
-                var d = Buildings.Def(job.type);
-                name = d.name; remaining = job.remaining; total = d.buildTime;
-            }
+            var job = st.queue[q.index];
+            var d = Buildings.Def(job.type);
+            float remaining = job.remaining, total = d.buildTime;
 
             float progress = q.index == 0 ? Mathf.Clamp01(1f - remaining / total) : 0f;
             string status = q.index == 0
                 ? Mathf.RoundToInt(100f * progress) + "%  " + Mathf.CeilToInt(remaining) + "s"
                 : "waiting";
-            q.label.text = name + "  " + UITheme.Dim(status);
+            q.label.text = d.name + "  " + UITheme.Dim(status);
             q.bar.Set(progress);
 
             // only waiting jobs can be reordered (the front job is already in progress)
@@ -860,14 +690,6 @@ public class BuildPanelUI : MonoBehaviour
     void SetTab(Tab t)
     {
         tab = t;
-        HideTip();
-        if (scroll != null) scroll.verticalNormalizedPosition = 1f;
-        Refresh();
-    }
-
-    void SetRole(int i)
-    {
-        roleIdx = i;
         HideTip();
         if (scroll != null) scroll.verticalNormalizedPosition = 1f;
         Refresh();
@@ -899,11 +721,7 @@ public class BuildPanelUI : MonoBehaviour
             int k = 0;
             for (int i = 0; i < n; i++)
             {
-                string why;
-                bool ok = r.building != null
-                    ? Buildings.TryQueue(st, r.building.type, out why)
-                    : ShipDefs.TryQueue(st, r.ship.cls, out why);
-                if (!ok)
+                if (!Buildings.TryQueue(st, r.building.type, out string why))
                 {
                     if (firstReason == null) firstReason = why;
                     break;
@@ -913,7 +731,7 @@ public class BuildPanelUI : MonoBehaviour
             if (k > 0) { made += k; planets++; }
         }
 
-        string name = r.building != null ? r.building.name : r.ship.name;
+        string name = r.building.name;
         if (made > 0)
             ToastUI.Show("Queued " + made + " x " + name + (planets > 1 ? " on " + planets + " planets" : ""));
         else
@@ -963,8 +781,7 @@ public class BuildPanelUI : MonoBehaviour
     void OnCancel(QueueRow q)
     {
         if (current == null) return;
-        if (q.isShip) ShipDefs.Cancel(current, q.index);
-        else Buildings.Cancel(current, q.index);
+        Buildings.Cancel(current, q.index);
         HideTip();
         Refresh();
     }
@@ -973,18 +790,9 @@ public class BuildPanelUI : MonoBehaviour
     {
         if (current == null) return;
         int i = q.index, j = i + dir;
-        if (q.isShip)
-        {
-            var l = current.shipQueue;
-            if (i < 1 || j < 1 || i >= l.Count || j >= l.Count) return;
-            (l[i], l[j]) = (l[j], l[i]);
-        }
-        else
-        {
-            var l = current.queue;
-            if (i < 1 || j < 1 || i >= l.Count || j >= l.Count) return;
-            (l[i], l[j]) = (l[j], l[i]);
-        }
+        var l = current.queue;
+        if (i < 1 || j < 1 || i >= l.Count || j >= l.Count) return;
+        (l[i], l[j]) = (l[j], l[i]);
         Refresh();
     }
 
@@ -1071,36 +879,19 @@ public class BuildPanelUI : MonoBehaviour
         stockLabel = UITheme.MakeText(brt, "Stock", 12, TextAlignmentOptions.TopLeft, FontStyles.Normal, 9f);
         UITheme.Height(stockLabel.gameObject, 52f);
 
-        // main tabs
+        // tabs
         var tabs = UITheme.Rect("Tabs", brt);
         UITheme.Height(tabs.gameObject, 32f);
         var th = tabs.gameObject.AddComponent<HorizontalLayoutGroup>();
         th.spacing = 4f;
         th.childControlWidth = th.childControlHeight = true;
         th.childForceExpandWidth = th.childForceExpandHeight = true;
-        for (int i = 0; i < 4; i++)
+        for (int i = 0; i < TabCount; i++)
         {
             var t = (Tab)i;
             tabBtns[i] = UITheme.MakeButton(tabs, TabNames[i], 0f, 32f, () => SetTab(t), 14f, out tabLabels[i]);
         }
         Attach(tabBtns[0].gameObject, () => "Tab / Shift+Tab switches tabs");
-
-        // ship sub-tabs
-        subTabsRoot = UITheme.Rect("SubTabs", brt).gameObject;
-        UITheme.Height(subTabsRoot, 28f);
-        var sh = subTabsRoot.AddComponent<HorizontalLayoutGroup>();
-        sh.spacing = 4f;
-        sh.childControlWidth = sh.childControlHeight = true;
-        sh.childForceExpandWidth = sh.childForceExpandHeight = true;
-        for (int i = 0; i < 3; i++)
-        {
-            int idx = i;
-            roleBtns[i] = UITheme.MakeButton(subTabsRoot.transform, Roles[i].ToString(), 0f, 28f, () => SetRole(idx), 13f, out roleLabels[i]);
-        }
-        Attach(roleBtns[0].gameObject, () => "Comma / Period switches ship tabs\nNumbers show buildable / defined ships. * = something in production.");
-
-        shipHeader = UITheme.MakeText(brt, "ShipHeader", 12, TextAlignmentOptions.MidlineLeft, FontStyles.Normal, 9f);
-        UITheme.Height(shipHeader.gameObject, 20f);
 
         // toolbar
         var tools = UITheme.Rect("Toolbar", brt);
@@ -1146,8 +937,7 @@ public class BuildPanelUI : MonoBehaviour
         scroll.viewport = viewport;
         scroll.content = content;
 
-        foreach (var def in Buildings.Defs) items.Add(MakeItemRow(content, def, null));
-        foreach (var def in ShipDefs.Defs) items.Add(MakeItemRow(content, null, def));
+        foreach (var def in Buildings.Defs) items.Add(MakeItemRow(content, def));
 
         var fold = UITheme.MakeButton(content, "Unavailable", 0f, 26f, OnToggleFold, 13f, out foldLabel);
         foldBtn = fold.gameObject;
@@ -1160,8 +950,7 @@ public class BuildPanelUI : MonoBehaviour
         queueHeading = UITheme.MakeText(brt, "QueueHeading", 14, TextAlignmentOptions.MidlineLeft, FontStyles.Bold, 10f);
         queueHeading.color = UITheme.Accent;
         UITheme.Height(queueHeading.gameObject, 24f);
-        for (int i = 0; i < Buildings.MaxQueue; i++) queueRows.Add(MakeQueueRow(brt, false, i));
-        for (int i = 0; i < ShipDefs.MaxQueue; i++) queueRows.Add(MakeQueueRow(brt, true, i));
+        for (int i = 0; i < Buildings.MaxQueue; i++) queueRows.Add(MakeQueueRow(brt, i));
 
         BuildTooltip(parent);
         panel.SetActive(false);
@@ -1208,12 +997,11 @@ public class BuildPanelUI : MonoBehaviour
         return bar;
     }
 
-    ItemRow MakeItemRow(Transform parent, BuildingDef bdef, ShipDef sdef)
+    ItemRow MakeItemRow(Transform parent, BuildingDef bdef)
     {
-        var row = new ItemRow { building = bdef, ship = sdef };
+        var row = new ItemRow { building = bdef };
         TMP_Text label;
-        float h = bdef != null ? 32f : 48f;
-        var btn = UITheme.MakeButton(parent, bdef != null ? bdef.name : sdef.name, 0f, h, () => OnItem(row), 14f, out label);
+        var btn = UITheme.MakeButton(parent, bdef.name, 0f, RowH, () => OnItem(row), 14f, out label);
 
         label.alignment = TextAlignmentOptions.MidlineLeft;
         label.fontStyle = FontStyles.Normal;
@@ -1231,15 +1019,15 @@ public class BuildPanelUI : MonoBehaviour
         row.button = btn;
         row.label = label;
         row.flashImg = fi;
-        Attach(btn.gameObject, () => bdef != null ? BuildingTip(row) : ShipTip(row));
+        Attach(btn.gameObject, () => BuildingTip(row));
         return row;
     }
 
-    QueueRow MakeQueueRow(Transform parent, bool isShip, int index)
+    QueueRow MakeQueueRow(Transform parent, int index)
     {
-        var q = new QueueRow { isShip = isShip, index = index };
+        var q = new QueueRow { index = index };
 
-        var rt = UITheme.Rect((isShip ? "ShipQueue" : "Queue") + index, parent);
+        var rt = UITheme.Rect("Queue" + index, parent);
         rt.gameObject.AddComponent<Image>().color = new Color(0.3f, 0.85f, 1f, 0.06f);
         UITheme.Height(rt.gameObject, 30f);
         var h = rt.gameObject.AddComponent<HorizontalLayoutGroup>();
@@ -1262,7 +1050,7 @@ public class BuildPanelUI : MonoBehaviour
         Attach(q.down.gameObject, () => "Move later (waiting jobs only)");
         Attach(q.cancel.gameObject, () => RefundText(q));
 
-        q.bar = UITheme.MakeOverlayBar(rt, "Progress", isShip ? UITheme.Good : UITheme.Accent, 3f);
+        q.bar = UITheme.MakeOverlayBar(rt, "Progress", UITheme.Accent, 3f);
         q.root = rt.gameObject;
         return q;
     }
