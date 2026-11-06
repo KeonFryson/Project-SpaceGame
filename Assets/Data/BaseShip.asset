@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f3a1cc371bcbe1842a3f671d0aef1346, type: 3}
+  m_Name: BaseShip
+  m_EditorClassIdentifier: Assembly-CSharp::ShipClassData
+  shipClass: 0
+  maxHealth: 100
+  maxSpeed: 22
+  acceleration: 30
+  turnRate: 180
+  fuelCapacity: 60
+  fuelBurnPerSec: 0.5
+  cargo: 20
+  metalCost: 50
+  popCost: 1
+  jumpRange: 60
+  warpFuelPerUnit: 1
+  warpSpoolTime: 3
+  warpSpeed: 20
+  visualSize: 1.2
+  prefab: {fileID: 0}

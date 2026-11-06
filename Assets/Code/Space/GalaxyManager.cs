@@ -27,6 +27,8 @@ public class GalaxyManager : MonoBehaviour
     [Header("Debug")]
     [SerializeField] bool debugKeys = true;
 
+    public Vector3 SystemOrigin => spawner != null ? spawner.transform.position : Vector3.zero;
+    public GalaxyMapView MapView => mapView;
     public GalaxyData Galaxy { get; private set; }
     public SolarSystemData CurrentSystem { get; private set; }
     public event System.Action<SolarSystemData> SystemLoaded;
@@ -74,14 +76,14 @@ public class GalaxyManager : MonoBehaviour
         {
             mapView.Hide();
             spawner.SetVisible(true);
-            cameraController.SetmaxOrthoSize(Galaxy.radius * 1.1f);
+            cameraController.SetmaxOrthoSize(CurrentSystem.radius * 1.1f);
             FrameSystem();
         }
         else
         {
             spawner.SetVisible(false);
             mapView.Show(Galaxy, CurrentSystem != null ? CurrentSystem.id : -1);
-            cameraController.SetmaxOrthoSize(CurrentSystem.radius * 1.1f);
+            cameraController.SetmaxOrthoSize(Galaxy.radius * 1.1f);
             FrameGalaxy();
         }
     }

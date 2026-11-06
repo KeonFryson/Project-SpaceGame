@@ -13,6 +13,7 @@ public class GalaxyMapView : MonoBehaviour
     [SerializeField] float markerRadius = 7f;
 
     public System.Action<int> SystemClicked;
+    public System.Action<int> SystemRightClicked;
     public bool IsOpen => gameObject.activeSelf;
 
     GalaxyData galaxy;
@@ -38,16 +39,27 @@ public class GalaxyMapView : MonoBehaviour
 
     public void Hide() => gameObject.SetActive(false);
 
+
+
     void Update()
     {
-        if (galaxy == null || Mouse.current == null || !Mouse.current.leftButton.wasPressedThisFrame) return;
+        if (galaxy == null || Mouse.current == null) return;
+        bool left = Mouse.current.leftButton.wasPressedThisFrame;
+        bool right = Mouse.current.rightButton.wasPressedThisFrame;
+        if (!left && !right) return;
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
         if (cam == null) cam = Camera.main;
         if (cam == null) return;
 
         Vector3 w = cam.ScreenToWorldPoint(Mouse.current.position.ReadValue());
         int id = galaxy.FindNearest(w, starSize * 1.5f + cam.orthographicSize * 0.03f);
-        if (id >= 0) SystemClicked?.Invoke(id);
+        if (id < 0) return;
+        if (left)
+        { Debug.Log($"GalaxyMapView: left-click system {id}");
+            SystemClicked?.Invoke(id); }
+        else
+        { Debug.Log($"GalaxyMapView: right-click system {id}");
+            SystemRightClicked?.Invoke(id); } 
     }
 
     void Build(GalaxyData g)

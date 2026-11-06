@@ -126,10 +126,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7045957659752125913}
   - component: {fileID: 5910000057845142742}
-  - component: {fileID: 6171961458416646222}
-  - component: {fileID: 1075321926739028471}
-  - component: {fileID: 4183056534428691910}
-  - component: {fileID: 3820101344498472680}
   m_Layer: 0
   m_Name: Ship
   m_TagString: Untagged
@@ -147,8 +143,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.754, y: -1.04, z: 0}
-  m_LocalScale: {x: 20, y: 20, z: 5}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 10, y: 10, z: 2.5}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 271192834834205556}
   m_Father: {fileID: 0}
@@ -212,125 +208,3 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
---- !u!114 &6171961458416646222
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5751620599073000105}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d61b610324132444c8bb30d6b4033bee, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::SpaceShip
-  maxHealth: 100
-  maxShield: 100
-  maxFuel: 100
-  maxAmmo: 100
-  health: 0
-  shield: 0
-  fuel: 0
-  ammo: 0
-  forceFieldController: {fileID: 0}
-  shieldObject: {fileID: 0}
-  projectileRippleStrength: 1
-  speed: 5
-  rotationSpeed: 200
-  isShieldActive: 0
---- !u!60 &1075321926739028471
-PolygonCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5751620599073000105}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_CompositeOperation: 0
-  m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: -0.42307693}
-    oldSize: {x: 0.3, y: 0.26}
-    newSize: {x: 0.3, y: 0.26}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  m_Points:
-    m_Paths:
-    - - {x: -0.011442915, y: 0.37881452}
-      - {x: -0.14999999, y: 0.19999999}
-      - {x: -0.14999999, y: 0.11}
-      - {x: 0.14, y: 0.11}
-      - {x: 0.14999999, y: 0.13}
-      - {x: 0.14999999, y: 0.19}
-      - {x: 0.03, y: 0.37}
-  m_UseDelaunayMesh: 1
---- !u!50 &4183056534428691910
-Rigidbody2D:
-  serializedVersion: 5
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5751620599073000105}
-  m_BodyType: 1
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_GravityScale: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
-  m_Constraints: 0
---- !u!114 &3820101344498472680
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5751620599073000105}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a39c630746d6dad439e5642d8d57e85a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ForceFieldTester
-  target: {fileID: 6710475188837479002}
-  ship: {fileID: 6171961458416646222}
-  cam: {fileID: 0}

@@ -47,7 +47,7 @@ public class Projectile : MonoBehaviour
         IDamageable damageable = collision.GetComponentInParent<IDamageable>();
         if (damageable == null) return;
 
-        if (damageable is SpaceShip ship)
+        if (damageable is ShipView ship)
             ship.OnProjectileHit(collision.ClosestPoint(transform.position));
 
         damageable.TakeDamage(damageAmount);
