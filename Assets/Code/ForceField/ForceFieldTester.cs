@@ -18,17 +18,19 @@ public class ForceFieldTester : MonoBehaviour
     {
         if (target == null) { Debug.LogWarning("Tester: no ForceFieldController found"); return; }
 
-        var dbg = GameInput.Actions.DebugTools;
+         
 
-        if (dbg.TestHitCenter.WasPressedThisFrame())
+        // Space = ripple at the shield center
+        if (Keyboard.current.spaceKey.wasPressedThisFrame)
         {
             Debug.Log("Test hit: center");
             target.Hit(target.transform.position, 1f);
         }
 
-        if (dbg.TestHitPointer.WasPressedThisFrame())
+        // Left click = ripple at the mouse position
+        if (Mouse.current.leftButton.wasPressedThisFrame)
         {
-            Vector3 p = cam.ScreenToWorldPoint(GameInput.Actions.RTS.Point.ReadValue<Vector2>());
+            Vector3 p = cam.ScreenToWorldPoint(Mouse.current.position.ReadValue());
             p.z = 0f;
             Debug.Log("Test hit: " + p);
             target.Hit(p, 1f);

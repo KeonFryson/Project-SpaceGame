@@ -41,12 +41,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _PatternTex:
         m_Texture: {fileID: 2800000, guid: 264e70193d0f64e4c96069736a410659, type: 3}
-        m_Scale: {x: 1, y: 1}
+        m_Scale: {x: 3, y: 3}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _Animation: 0
-    - _BaseAlpha: 0.022
+    - _BaseAlpha: 0.118
     - _Break: 1
     - _EnableExternalAlpha: 0
     - _OutlineIntensity: 0.199
@@ -55,8 +55,8 @@ Material:
     - _PatternTiling: 1
     - _RippleDistort: 0.15
     - _RippleDuration: 1
-    - _RippleSpeed: 0.9
-    - _RippleWidth: 0.1
+    - _RippleSpeed: 0.5
+    - _RippleWidth: 0.02
     - _ZWrite: 0
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}

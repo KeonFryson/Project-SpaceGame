@@ -17,7 +17,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &271192834834205556
 Transform:
   m_ObjectHideFlags: 0
@@ -111,9 +111,11 @@ MonoBehaviour:
   minStrength: 0.4
   maxStrength: 1.5
   velocityForMaxStrength: 10
-  autoRippleOnContact: 1
-  breakDuration: 0.6
-  breakScalePunch: 0
+  triggerRippleStrength: 1
+  autoRippleOnContact: 0
+  animationDuration: 0.8
+  animationScalePunch: 0
+  burstRadiusFraction: 0.54
 --- !u!1 &5751620599073000105
 GameObject:
   m_ObjectHideFlags: 0
@@ -134,7 +136,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &7045957659752125913
 Transform:
   m_ObjectHideFlags: 0
@@ -222,15 +224,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d61b610324132444c8bb30d6b4033bee, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpaceShip
+  maxHealth: 100
+  maxShield: 100
+  maxFuel: 100
+  maxAmmo: 100
   health: 0
   shield: 0
   fuel: 0
   ammo: 0
-  isShieldActive: 0
   forceFieldController: {fileID: 0}
   shieldObject: {fileID: 0}
+  projectileRippleStrength: 1
   speed: 5
   rotationSpeed: 200
+  isShieldActive: 0
 --- !u!60 &1075321926739028471
 PolygonCollider2D:
   m_ObjectHideFlags: 0
