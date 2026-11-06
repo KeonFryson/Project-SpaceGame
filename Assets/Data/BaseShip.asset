@@ -27,4 +27,4 @@ MonoBehaviour:
   warpSpoolTime: 3
   warpSpeed: 20
   visualSize: 1.2
-  prefab: {fileID: 0}
+  prefab: {fileID: 5751620599073000105, guid: 61b3890720af32e4796ad4cf26c50255, type: 3}
